@@ -3,357 +3,366 @@
 {% block title %}Dashboard - Homelab Inventory System{% endblock %}
 
 {% block content %}
-<div class="dashboard" x-data="{ expandedModule: null }">
-    <h1>Dashboard</h1>
+<div class="new-dashboard" x-data="dashboardState()" x-init="init()">
 
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">📦</div>
-            <div class="stat-info">
-                <h3>{{ stats['modules'] }}</h3>
-                <p>Modules</p>
-            </div>
+    <!-- Persistent Search Bar -->
+    <div class="persistent-search" x-data="searchState()">
+        <div class="search-bar-wrapper">
+            <input
+                type="text"
+                class="search-input"
+                placeholder="🔍 Search inventory..."
+                x-model="query"
+                @input.debounce.300ms="performSearch()"
+                @focus="searchFocused = true"
+                @blur.debounce.200ms="onBlur()"
+                autocomplete="off"
+            >
+            <span class="search-result-count" x-show="results.length > 0" x-text="results.length + ' result' + (results.length !== 1 ? 's' : '')"></span>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-info">
-                <h3>{{ stats['levels'] }}</h3>
-                <p>Levels</p>
-            </div>
-        </div>
+        <!-- Search Results Dropdown -->
+        <div class="search-results-dropdown"
+             x-show="searchFocused && results.length > 0"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100"
+             @click.away="searchFocused = false">
 
-        <div class="stat-card">
-            <div class="stat-icon">📍</div>
-            <div class="stat-info">
-                <h3>{{ stats['locations'] }}</h3>
-                <p>Locations</p>
-            </div>
-        </div>
+            <template x-for="item in results" :key="item.id">
+                <div class="search-result-item"
+                     @mouseenter="onSearchResultHover(item)"
+                     @mouseleave="onSearchResultLeave()"
+                     @click="viewLocation(item.location_id)">
 
-        <div class="stat-card">
-            <div class="stat-icon">🔧</div>
-            <div class="stat-info">
-                <h3>{{ stats['items'] }}</h3>
-                <p>Items</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <h2>Quick Actions</h2>
-        <div class="action-buttons">
-            <a href="{{ url_for('items.new_item') }}" class="btn btn-primary">+ Add Item</a>
-            <a href="{{ url_for('modules.new_module') }}" class="btn btn-secondary">+ Add Module</a>
-            <a href="{{ url_for('search.search') }}" class="btn btn-secondary">🔍 Search</a>
-        </div>
-    </div>
-
-    <!-- Two Column Layout -->
-    <div class="dashboard-columns">
-        <!-- Recent Items -->
-        <div class="dashboard-section">
-            <h2>Recent Items</h2>
-            {% if recent_items %}
-                <div class="items-list">
-                    {% for item in recent_items %}
-                    <div class="item-card">
-                        <div class="item-header">
-                            <h3>{{ item.name }}</h3>
-                            {% if item.category %}
-                            <span class="badge badge-{{ item.category }}">{{ item.category }}</span>
-                            {% endif %}
-                        </div>
-                        {% if item.description %}
-                        <p class="item-description">{{ item.description }}</p>
-                        {% endif %}
-                        <div class="item-meta">
-                            {% if item.location %}
-                            <span class="item-location">📍 {{ item.location.full_address() }}</span>
-                            {% else %}
-                            <span class="item-location text-muted">No location assigned</span>
-                            {% endif %}
-                        </div>
-                        <div class="item-actions">
-                            <a href="{{ url_for('items.view_item', item_id=item.id) }}" class="btn-link">View</a>
-                            <a href="{{ url_for('items.edit_item', item_id=item.id) }}" class="btn-link">Edit</a>
-                        </div>
+                    <div class="result-main">
+                        <span class="result-name" x-text="item.name"></span>
+                        <span class="badge" x-show="item.category" x-text="item.category"></span>
                     </div>
-                    {% endfor %}
+
+                    <div class="result-breadcrumb" x-text="item.location_breadcrumb"></div>
                 </div>
-            {% else %}
-                <p class="empty-state">No items yet. <a href="{{ url_for('items.new_item') }}">Add your first item</a></p>
-            {% endif %}
-        </div>
+            </template>
 
-        <!-- Storage Modules -->
-        <div class="dashboard-section">
-            <h2>Storage Modules</h2>
-            {% if modules %}
-                <div class="modules-list">
-                    {% for module in modules %}
-                    <div class="module-card" x-data="{ expanded: false }">
-                        <div class="module-header" @click="expanded = !expanded">
-                            <h3>{{ module.name }}</h3>
-                            <span class="expand-icon" x-text="expanded ? '−' : '+'"></span>
-                        </div>
-
-                        {% if module.description %}
-                        <p class="module-description">{{ module.description }}</p>
-                        {% endif %}
-
-                        <div class="module-stats">
-                            <span>{{ module.levels|length }} levels</span>
-                            {% set location_count = namespace(total=0) %}
-                            {% for level in module.levels %}
-                                {% set location_count.total = location_count.total + level.locations|length %}
-                            {% endfor %}
-                            <span>{{ location_count.total }} locations</span>
-                        </div>
-
-                        <div class="module-details" x-show="expanded" x-transition>
-                            {% if module.levels %}
-                            <ul class="levels-list">
-                                {% for level in module.levels %}
-                                <li>
-                                    <strong>{{ level.name }}</strong> -
-                                    {{ level.rows }} rows × {{ level.columns }} columns
-                                    ({{ level.locations|length }} locations)
-                                </li>
-                                {% endfor %}
-                            </ul>
-                            {% endif %}
-                            <div class="module-actions">
-                                <a href="{{ url_for('modules.view_module', module_id=module.id) }}" class="btn-link">View Details</a>
-                                <a href="{{ url_for('modules.edit_module', module_id=module.id) }}" class="btn-link">Edit</a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p class="empty-state">No modules yet. <a href="{{ url_for('modules.new_module') }}">Create your first module</a></p>
-            {% endif %}
+            <div class="search-footer" x-show="results.length >= searchLimit">
+                Showing <span x-text="searchLimit"></span> results. Refine search for more specific results.
+            </div>
         </div>
     </div>
+
+    <!-- Module Grid -->
+    <div class="module-grid">
+        <template x-for="module in modules" :key="module.id">
+            <div class="module-cell"
+                 :class="{ 'highlighted': highlightedModule === module.id }"
+                 @mouseenter="onModuleHover(module.id)"
+                 @mouseleave="onModuleLeave()">
+
+                <!-- Module Name -->
+                <h3 class="module-cell-title" x-text="module.name"></h3>
+
+                <!-- Module Description (if exists) -->
+                <p class="module-description" x-show="module.description" x-text="module.description"></p>
+
+                <!-- Level Links -->
+                <ul class="level-links">
+                    <template x-for="level in module.levels" :key="level.id">
+                        <li :class="{ 'highlighted': highlightedLevel === level.id }"
+                            @mouseenter="onLevelHover(level.id)"
+                            @mouseleave="onLevelLeave()">
+                            <a :href="'/modules/' + module.id + '#level-' + level.id" x-text="levelLabel(level)"></a>
+                            <span class="level-stats" x-text="levelStats(level)"></span>
+                        </li>
+                    </template>
+                </ul>
+
+                <!-- Module Statistics Footer -->
+                <div class="module-stats-footer" x-text="moduleStats(module)"></div>
+            </div>
+        </template>
+
+        <!-- Empty State -->
+        <div class="empty-state-grid" x-show="modules.length === 0">
+            <p>No modules yet. <a href="{{ url_for('modules.new_module') }}">Create your first module</a></p>
+        </div>
+    </div>
+
+    <!-- Location Detail Panel -->
+    <div class="location-detail-panel"
+         x-data="locationDetailState()"
+         x-show="visible"
+         @show-location-detail.window="showDetail($event.detail.locationId)"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="transform translate-x-full"
+         x-transition:enter-end="transform translate-x-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="transform translate-x-0"
+         x-transition:leave-end="transform translate-x-full">
+
+        <div class="detail-header">
+            <h2>Location Details</h2>
+            <button @click="visible = false" class="close-btn">&times;</button>
+        </div>
+
+        <div class="detail-breadcrumb" x-text="location.breadcrumb"></div>
+
+        <div class="detail-body">
+            <!-- Location Info -->
+            <div class="detail-section">
+                <h3>Location</h3>
+                <div class="detail-group">
+                    <label>Address</label>
+                    <p x-text="location.full_address"></p>
+                </div>
+                <div class="detail-group" x-show="location.location_type">
+                    <label>Type</label>
+                    <p x-text="location.location_type"></p>
+                </div>
+                <div class="detail-group" x-show="location.dimensions">
+                    <label>Dimensions</label>
+                    <p x-text="formatDimensions(location.dimensions)"></p>
+                </div>
+                <div class="detail-group" x-show="location.notes">
+                    <label>Notes</label>
+                    <p x-text="location.notes"></p>
+                </div>
+            </div>
+
+            <!-- Item Info (if occupied) -->
+            <div class="detail-section" x-show="location.item">
+                <h3>Item in this Location</h3>
+                <div class="detail-group">
+                    <label>Name</label>
+                    <p x-text="location.item?.name"></p>
+                </div>
+                <div class="detail-group" x-show="location.item?.description">
+                    <label>Description</label>
+                    <p x-text="location.item?.description"></p>
+                </div>
+                <div class="detail-group" x-show="location.item?.category">
+                    <label>Category</label>
+                    <p><span class="badge" x-text="location.item?.category"></span></p>
+                </div>
+            </div>
+
+            <!-- Empty Location Message -->
+            <div class="detail-section" x-show="!location.is_occupied">
+                <p class="empty-location-msg">This location is currently empty.</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="detail-actions">
+                <a :href="'/items/' + location.item?.id" x-show="location.item" class="btn btn-primary">
+                    View Full Item Details
+                </a>
+                <a :href="'/modules/' + location.module_id" class="btn btn-secondary">
+                    View Module & Grid
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Statistics Bar -->
+    <div class="dashboard-footer-stats">
+        <span class="stat-item">
+            <strong x-text="stats.modules"></strong> modules
+        </span>
+        <span class="stat-separator">•</span>
+        <span class="stat-item">
+            <strong x-text="stats.levels"></strong> levels
+        </span>
+        <span class="stat-separator">•</span>
+        <span class="stat-item">
+            <strong x-text="stats.locations"></strong> locations
+        </span>
+        <span class="stat-separator">•</span>
+        <span class="stat-item">
+            Overall: <strong x-text="stats.occupancy_pct + '%'"></strong>
+            (<span x-text="stats.occupied + '/' + stats.total"></span>)
+        </span>
+    </div>
+
 </div>
 
-<style>
-.dashboard {
-    padding: 2rem 0;
+
+<script>
+// Dashboard State Management
+function dashboardState() {
+    return {
+        modules: [],
+        stats: {
+            modules: 0,
+            levels: 0,
+            locations: 0,
+            total: 0,
+            occupied: 0,
+            occupancy_pct: 0
+        },
+        highlightedModule: null,
+        highlightedLevel: null,
+        searchHoverActive: false,
+
+        async init() {
+            await this.loadModules();
+            this.setupEventListeners();
+        },
+
+        async loadModules() {
+            try {
+                const response = await fetch('/api/dashboard/stats');
+                const data = await response.json();
+                this.modules = data.modules;
+                this.stats = {
+                    modules: data.overall.modules,
+                    levels: data.overall.levels,
+                    locations: data.overall.locations,
+                    total: data.overall.locations,
+                    occupied: data.overall.occupied,
+                    occupancy_pct: data.overall.occupancy_pct
+                };
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        },
+
+        setupEventListeners() {
+            window.addEventListener('highlight-location', (event) => {
+                this.searchHoverActive = true;
+                this.highlightedModule = event.detail.moduleId;
+                this.highlightedLevel = event.detail.levelId;
+            });
+
+            window.addEventListener('clear-highlight', () => {
+                this.searchHoverActive = false;
+                this.highlightedModule = null;
+                this.highlightedLevel = null;
+            });
+        },
+
+        levelLabel(level) {
+            return level.name || `Level ${level.level_number}`;
+        },
+
+        levelStats(level) {
+            return `${level.occupied}/${level.total}`;
+        },
+
+        moduleStats(module) {
+            return `${module.occupied}/${module.total} (${module.occupancy_pct}%)`;
+        },
+
+        onModuleHover(moduleId) {
+            if (!this.searchHoverActive) {
+                this.highlightedModule = moduleId;
+            }
+        },
+
+        onModuleLeave() {
+            if (!this.searchHoverActive) {
+                this.highlightedModule = null;
+            }
+        },
+
+        onLevelHover(levelId) {
+            if (!this.searchHoverActive) {
+                this.highlightedLevel = levelId;
+            }
+        },
+
+        onLevelLeave() {
+            if (!this.searchHoverActive) {
+                this.highlightedLevel = null;
+            }
+        }
+    };
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+// Search State Management
+function searchState() {
+    return {
+        query: '',
+        results: [],
+        searchLimit: 5,
+        searchFocused: false,
+
+        async performSearch() {
+            if (this.query.length < 2) {
+                this.results = [];
+                return;
+            }
+
+            try {
+                const response = await fetch(`/search/api/live?q=${encodeURIComponent(this.query)}&limit=${this.searchLimit}`);
+                const data = await response.json();
+                this.results = data.results;
+            } catch (error) {
+                console.error('Error performing search:', error);
+                this.results = [];
+            }
+        },
+
+        onSearchResultHover(item) {
+            window.dispatchEvent(new CustomEvent('highlight-location', {
+                detail: {
+                    moduleId: item.module_id,
+                    levelId: item.level_id
+                }
+            }));
+        },
+
+        onSearchResultLeave() {
+            window.dispatchEvent(new CustomEvent('clear-highlight'));
+        },
+
+        viewLocation(locationId) {
+            if (!locationId) return;
+            window.dispatchEvent(new CustomEvent('show-location-detail', {
+                detail: { locationId }
+            }));
+            this.searchFocused = false;
+        },
+
+        onBlur() {
+            // Delay to allow click events to fire
+            setTimeout(() => {
+                this.searchFocused = false;
+            }, 200);
+        }
+    };
 }
 
-.stat-card {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
+// Location Detail State Management
+function locationDetailState() {
+    return {
+        visible: false,
+        location: {
+            breadcrumb: '',
+            full_address: '',
+            location_type: '',
+            dimensions: null,
+            notes: '',
+            is_occupied: false,
+            item: null,
+            module_id: null
+        },
 
-.stat-icon {
-    font-size: 2.5rem;
-}
+        async showDetail(locationId) {
+            try {
+                const response = await fetch(`/locations/api/locations/${locationId}/detail`);
+                const data = await response.json();
+                this.location = data;
+                this.visible = true;
+            } catch (error) {
+                console.error('Error loading location details:', error);
+                alert('Error loading location details');
+            }
+        },
 
-.stat-info h3 {
-    margin: 0;
-    font-size: 2rem;
-    color: #2c3e50;
+        formatDimensions(dims) {
+            if (!dims) return '';
+            return `${dims.width_mm} × ${dims.height_mm} × ${dims.depth_mm} mm`;
+        }
+    };
 }
-
-.stat-info p {
-    margin: 0;
-    color: #7f8c8d;
-    font-size: 0.9rem;
-}
-
-.quick-actions {
-    margin-bottom: 2rem;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.dashboard-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-}
-
-@media (max-width: 968px) {
-    .dashboard-columns {
-        grid-template-columns: 1fr;
-    }
-}
-
-.dashboard-section {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.dashboard-section h2 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 0.5rem;
-}
-
-.items-list, .modules-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.item-card, .module-card {
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 1rem;
-    transition: box-shadow 0.2s;
-}
-
-.item-card:hover, .module-card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.item-header, .module-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.module-header {
-    cursor: pointer;
-    user-select: none;
-}
-
-.item-header h3, .module-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: #2c3e50;
-}
-
-.expand-icon {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #3498db;
-}
-
-.badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.badge-electronics { background: #e3f2fd; color: #1976d2; }
-.badge-tools { background: #fff3e0; color: #f57c00; }
-.badge-components { background: #f3e5f5; color: #7b1fa2; }
-.badge-hardware { background: #e8f5e9; color: #388e3c; }
-
-.item-description, .module-description {
-    font-size: 0.9rem;
-    color: #555;
-    margin: 0.5rem 0;
-}
-
-.item-meta, .module-stats {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    color: #7f8c8d;
-    margin: 0.5rem 0;
-}
-
-.item-location {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.item-actions, .module-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 0.5rem;
-}
-
-.levels-list {
-    list-style: none;
-    padding: 0;
-    margin: 1rem 0;
-}
-
-.levels-list li {
-    padding: 0.5rem;
-    background: #f8f9fa;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.empty-state {
-    text-align: center;
-    color: #7f8c8d;
-    padding: 2rem;
-    font-style: italic;
-}
-
-.text-muted {
-    color: #95a5a6;
-}
-
-.btn, .btn-link {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: all 0.2s;
-}
-
-.btn-primary {
-    background: #3498db;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #2980b9;
-}
-
-.btn-secondary {
-    background: #95a5a6;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: #7f8c8d;
-}
-
-.btn-link {
-    color: #3498db;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.9rem;
-}
-
-.btn-link:hover {
-    color: #2980b9;
-    text-decoration: underline;
-}
-</style>
+</script>
 {% endblock %}
