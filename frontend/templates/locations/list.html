@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Locations - Homelab Inventory System{% endblock %}
+
+{% block content %}
+<div class="locations-page">
+    <div class="page-header">
+        <h1>Locations</h1>
+        <div class="header-actions">
+            <a href="{{ url_for('main.index') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <form method="GET" class="filters-form">
+            <div class="filter-group">
+                <label for="occupied">Occupancy:</label>
+                <select name="occupied" id="occupied">
+                    <option value="">All</option>
+                    <option value="yes" {% if request.args.get('occupied') == 'yes' %}selected{% endif %}>Occupied</option>
+                    <option value="no" {% if request.args.get('occupied') == 'no' %}selected{% endif %}>Empty</option>
+                </select>
+            </div>
+
+            {% if location_types %}
+            <div class="filter-group">
+                <label for="location_type">Type:</label>
+                <select name="location_type" id="location_type">
+                    <option value="">All Types</option>
+                    {% for type in location_types %}
+                    <option value="{{ type }}" {% if request.args.get('location_type') == type %}selected{% endif %}>
+                        {{ type }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{{ url_for('locations.list_locations') }}" class="btn btn-secondary">Clear</a>
+        </form>
+    </div>
+
+    <!-- Locations List -->
+    {% if locations %}
+    <div class="locations-list">
+        <div class="list-header">
+            <span class="col-address">Address</span>
+            <span class="col-type">Type</span>
+            <span class="col-status">Status</span>
+            <span class="col-item">Item</span>
+            <span class="col-actions">Actions</span>
+        </div>
+
+        {% for location in locations %}
+        <div class="location-row" data-location-id="{{ location.id }}">
+            <span class="col-address">
+                <strong>{{ location.full_address() }}</strong>
+            </span>
+            <span class="col-type">
+                {{ location.location_type or 'general' }}
+            </span>
+            <span class="col-status">
+                {% if location.items %}
+                <span class="status-badge occupied">Occupied</span>
+                {% else %}
+                <span class="status-badge empty">Empty</span>
+                {% endif %}
+            </span>
+            <span class="col-item">
+                {% if location.items %}
+                <a href="{{ url_for('items.view_item', item_id=location.items[0].id) }}" class="item-link">
+                    {{ location.items[0].name }}
+                </a>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+            </span>
+            <span class="col-actions">
+                <a href="{{ url_for('locations.view_location', location_id=location.id) }}" class="btn-link">View</a>
+                <a href="{{ url_for('locations.edit_location', location_id=location.id) }}" class="btn-link">Edit</a>
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="list-summary">
+        Showing {{ locations|length }} location{{ 's' if locations|length != 1 else '' }}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No locations found matching your criteria.</p>
+        <a href="{{ url_for('locations.list_locations') }}" class="btn btn-secondary">Clear Filters</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.locations-page {
+    padding: 2rem 0;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.filters-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.filters-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.filter-group select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    min-width: 150px;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.locations-list {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.list-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 2fr 1fr;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.location-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 2fr 1fr;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    align-items: center;
+}
+
+.location-row:hover {
+    background-color: #f8f9fa;
+}
+
+.location-row:last-child {
+    border-bottom: none;
+}
+
+.col-address strong {
+    font-family: monospace;
+    color: #2c3e50;
+}
+
+.col-type {
+    color: #7f8c8d;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-badge.occupied {
+    background: #dbeafe;
+    color: #1976d2;
+}
+
+.status-badge.empty {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.item-link {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.item-link:hover {
+    text-decoration: underline;
+}
+
+.col-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-link {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.list-summary {
+    text-align: center;
+    padding: 1rem;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    background: white;
+    padding: 3rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.empty-state p {
+    color: #7f8c8d;
+    margin-bottom: 1rem;
+}
+
+.text-muted {
+    color: #95a5a6;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+    .list-header,
+    .location-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .list-header span {
+        display: none;
+    }
+
+    .location-row span::before {
+        content: attr(class);
+        font-weight: 600;
+        display: inline-block;
+        width: 100px;
+    }
+
+    .filters-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group select {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

@@ -75,32 +75,17 @@
                     {% set location = location_grid.get(row_label, {}).get(col_label) %}
 
                     <div class="location-cell {% if location and location.items %}occupied{% else %}empty{% endif %}"
-                         x-data="{ showInfo: false }"
-                         @mouseenter="showInfo = true"
-                         @mouseleave="showInfo = false">
-                        <div class="cell-label">{{ row_label }}{{ col_label }}</div>
+                         @click="{% if location and location.items %}window.location.href='{{ url_for('items.view_item', item_id=location.items[0].id) }}'{% endif %}">
 
                         {% if location %}
                             {% if location.items %}
-                                <div class="cell-status occupied-status">●</div>
+                                {% set item = location.items[0] %}
+                                <div class="cell-item-name">{{ item.name }}</div>
                             {% else %}
-                                <div class="cell-status empty-status">○</div>
+                                <div class="cell-empty-indicator">—</div>
                             {% endif %}
-
-                            <!-- Hover info -->
-                            <div class="cell-info" x-show="showInfo" x-transition>
-                                <strong>{{ location.full_address() }}</strong>
-                                {% if location.items %}
-                                    {% set item = location.items[0] %}
-                                    <p class="item-name">{{ item.name }}</p>
-                                    <a href="{{ url_for('items.view_item', item_id=item.id) }}" class="view-item-link">View Item →</a>
-                                {% else %}
-                                    <p class="empty-text">Empty location</p>
-                                    <p class="empty-hint">Available for storage</p>
-                                {% endif %}
-                            </div>
                         {% else %}
-                            <div class="cell-status missing-status">✕</div>
+                            <div class="cell-missing-indicator">✕</div>
                         {% endif %}
                     </div>
                 {% endfor %}
@@ -316,17 +301,17 @@
 
 .location-cell {
     position: relative;
-    min-width: 80px;
-    min-height: 80px;
+    min-width: 120px;
+    min-height: 100px;
     border: 2px solid #ddd;
     border-radius: 6px;
-    padding: 0.5rem;
+    padding: 0.75rem;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
 }
 
 .location-cell.empty {
@@ -347,86 +332,27 @@
 .location-cell.occupied:hover {
     border-color: #388e3c;
     box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    transform: translateY(-2px);
 }
 
-.cell-label {
-    font-size: 0.85rem;
-    font-weight: bold;
-    color: #6c757d;
-    margin-bottom: 0.25rem;
+.cell-item-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2c3e50;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.3;
 }
 
-.cell-status {
-    font-size: 1.5rem;
-}
-
-.occupied-status {
-    color: #4caf50;
-}
-
-.empty-status {
+.cell-empty-indicator {
+    font-size: 2rem;
     color: #adb5bd;
 }
 
-.missing-status {
+.cell-missing-indicator {
+    font-size: 1.5rem;
     color: #e74c3c;
-}
-
-.cell-info {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 0.5rem;
-    background: white;
-    border: 2px solid #3498db;
-    border-radius: 6px;
-    padding: 1rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10;
-    min-width: 200px;
-    text-align: left;
-}
-
-.cell-info strong {
-    display: block;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
-
-.cell-info .item-name {
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0.25rem 0;
-}
-
-.cell-info .item-qty {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-    margin: 0.25rem 0;
-}
-
-.cell-info .empty-text {
-    color: #7f8c8d;
-    margin: 0.25rem 0;
-}
-
-.cell-info .empty-hint {
-    font-size: 0.85rem;
-    color: #95a5a6;
-    margin: 0.25rem 0;
-}
-
-.view-item-link {
-    display: inline-block;
-    margin-top: 0.5rem;
-    color: #3498db;
-    text-decoration: none;
-    font-size: 0.9rem;
-}
-
-.view-item-link:hover {
-    text-decoration: underline;
 }
 
 .grid-legend {

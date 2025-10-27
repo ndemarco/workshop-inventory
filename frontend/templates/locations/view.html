@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}{{ location.full_address() }} - Locations{% endblock %}
+
+{% block content %}
+<div class="location-view">
+    <div class="page-header">
+        <div>
+            <nav class="breadcrumb">
+                <a href="{{ url_for('locations.list_locations') }}">Locations</a> / {{ location.full_address() }}
+            </nav>
+            <h1>{{ location.full_address() }}</h1>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('locations.edit_location', location_id=location.id) }}" class="btn btn-primary">Edit Location</a>
+        </div>
+    </div>
+
+    <div class="location-details-card">
+        <div class="detail-grid">
+            <div class="detail-item">
+                <strong>Module:</strong>
+                <span>{{ location.level.module.name if location.level and location.level.module else 'Unknown' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Level:</strong>
+                <span>{{ location.level.name or 'Level ' + location.level.level_number|string if location.level else 'Unknown' }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Position:</strong>
+                <span>{{ location.row }}{{ location.column }}</span>
+            </div>
+
+            <div class="detail-item">
+                <strong>Type:</strong>
+                <span>{{ location.location_type or 'general' }}</span>
+            </div>
+        </div>
+
+        {% if location.width_mm or location.height_mm or location.depth_mm %}
+        <div class="detail-row">
+            <strong>Dimensions:</strong>
+            <p>
+                {% if location.width_mm %}Width: {{ location.width_mm }}mm{% endif %}
+                {% if location.height_mm %}{% if location.width_mm %} × {% endif %}Height: {{ location.height_mm }}mm{% endif %}
+                {% if location.depth_mm %}{% if location.width_mm or location.height_mm %} × {% endif %}Depth: {{ location.depth_mm }}mm{% endif %}
+            </p>
+        </div>
+        {% endif %}
+
+        {% if location.notes %}
+        <div class="detail-row">
+            <strong>Notes:</strong>
+            <p>{{ location.notes }}</p>
+        </div>
+        {% endif %}
+
+        <div class="detail-row metadata">
+            <small>Created: {{ location.created_at.strftime('%Y-%m-%d %H:%M') if location.created_at else 'N/A' }}</small>
+            <small>Updated: {{ location.updated_at.strftime('%Y-%m-%d %H:%M') if location.updated_at else 'N/A' }}</small>
+        </div>
+    </div>
+
+    <!-- Item in this Location -->
+    <div class="item-section">
+        <h2>Item in this Location</h2>
+        {% if item %}
+        <div class="item-card">
+            <div class="item-header">
+                <h3>{{ item.name }}</h3>
+                {% if item.category %}
+                <span class="badge badge-{{ item.category }}">{{ item.category }}</span>
+                {% endif %}
+            </div>
+
+            <p class="item-description">{{ item.description }}</p>
+
+            <div class="item-actions">
+                <a href="{{ url_for('items.view_item', item_id=item.id) }}" class="btn btn-primary">View Item Details</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>This location is currently empty.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.location-view {
+    padding: 2rem 0;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.breadcrumb {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-family: monospace;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.location-details-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.detail-row {
+    margin-bottom: 1.5rem;
+}
+
+.detail-row:last-child {
+    margin-bottom: 0;
+}
+
+.detail-row strong {
+    display: block;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.detail-row p {
+    margin: 0;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item strong {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 0.25rem;
+}
+
+.detail-item span {
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.detail-row.metadata {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.detail-row.metadata small {
+    color: #95a5a6;
+}
+
+.item-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.item-section h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.item-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 1.5rem;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.item-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.badge-electronics { background: #e3f2fd; color: #1976d2; }
+.badge-tools { background: #fff3e0; color: #f57c00; }
+.badge-components { background: #f3e5f5; color: #7b1fa2; }
+.badge-hardware { background: #e8f5e9; color: #388e3c; }
+
+.item-description {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.item-actions {
+    margin-top: 1.5rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
