@@ -146,12 +146,7 @@ class Item(db.Model):
     
     # Structured metadata (parsed from description or manually entered)
     item_metadata = db.Column(JSON)  # Flexible storage for specs, dimensions, etc.
-    
-    # Inventory tracking
-    quantity = db.Column(db.Integer, default=1)
-    unit = db.Column(db.String(20))  # pieces, meters, liters, etc.
-    min_quantity = db.Column(db.Integer)  # For low stock alerts
-    
+
     # Item characteristics
     item_type = db.Column(db.String(50))  # solid, liquid, smd_component, bulk, etc.
     notes = db.Column(db.Text)
@@ -173,9 +168,6 @@ class Item(db.Model):
             'description': self.description,
             'category': self.category,
             'item_metadata': self.item_metadata,
-            'quantity': self.quantity,
-            'unit': self.unit,
-            'min_quantity': self.min_quantity,
             'item_type': self.item_type,
             'notes': self.notes,
             'tags': self.tags.split(',') if self.tags else [],
@@ -192,7 +184,6 @@ class ItemLocation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'), nullable=False)
-    quantity = db.Column(db.Integer, default=1)  # Quantity at this specific location
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -214,7 +205,6 @@ class ItemLocation(db.Model):
             'id': self.id,
             'item_id': self.item_id,
             'location_id': self.location_id,
-            'quantity': self.quantity,
             'notes': self.notes,
             'location': self.location.to_dict() if self.location else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
