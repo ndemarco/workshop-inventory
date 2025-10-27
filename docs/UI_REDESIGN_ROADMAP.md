@@ -1573,6 +1573,588 @@ __pycache__/
 
 ---
 
+### Task 6.7: Display Photo Thumbnails in Level Grid
+
+**Files:**
+- `frontend/templates/levels/view.html` (update grid cells)
+- `frontend/static/css/style.css` (grid cell styling)
+
+Replace text-only grid cells with photo thumbnails for occupied locations:
+
+```html
+<div class="location-cell {% if location and location.items %}occupied{% else %}empty{% endif %}"
+     @click="{% if location and location.items %}window.location.href='...'{% endif %}">
+
+    {% if location and location.items %}
+        {% set item = location.items[0] %}
+        {% set main_photo = item.get_main_photo() %}
+
+        <div class="cell-thumbnail-container">
+            {% if main_photo %}
+                <img src="{{ main_photo.thumbnail_url }}"
+                     alt="{{ item.name }}"
+                     class="cell-thumbnail">
+                <div class="cell-name-overlay">{{ item.name }}</div>
+            {% else %}
+                <!-- Fallback: text only if no photo -->
+                <div class="cell-no-photo-icon">📦</div>
+                <div class="cell-item-name">{{ item.name }}</div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="cell-empty-indicator">—</div>
+    {% endif %}
+</div>
+```
+
+**CSS Updates:**
+```css
+.location-cell {
+    min-width: 140px;
+    min-height: 140px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.cell-thumbnail-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.cell-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cell-name-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    word-wrap: break-word;
+    line-height: 1.2;
+}
+
+.cell-no-photo-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.cell-item-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    word-wrap: break-word;
+    line-height: 1.2;
+}
+```
+
+**Acceptance Criteria:**
+- Grid cells display thumbnail of main photo when item has photos
+- Item name overlaid on bottom of thumbnail with semi-transparent background
+- Fallback to text-only display when item has no photos
+- Clicking cell navigates to item detail page
+- Grid remains scannable and visually appealing
+- Thumbnails maintain aspect ratio (object-fit: cover)
+
+**Estimated Effort:** 2 hours
+
+---
+
+## Phase 7: Bulk Operations & Level Management
+
+**Goal:** Enable efficient bulk creation of levels and bulk movement of items
+
+### Task 7.1: Bulk Level Creation UI
+
+**Files:**
+- `frontend/templates/modules/view.html` (add bulk create section)
+- `backend/app/routes/modules.py` (add bulk create endpoint)
+
+Add ability to create multiple levels at once with the same grid configuration:
+
+```html
+<!-- In module view page, above existing level list -->
+<div class="bulk-level-creator" x-data="bulkLevelState()">
+    <button @click="showBulkCreate = !showBulkCreate" class="btn btn-secondary">
+        + Add Multiple Levels
+    </button>
+
+    <div x-show="showBulkCreate" class="bulk-create-panel"
+         x-transition:enter="transition ease-out duration-200">
+
+        <h3>Create Multiple Levels</h3>
+
+        <div class="form-group">
+            <label>Number of Levels to Create</label>
+            <input type="number" x-model.number="levelCount" min="1" max="50" class="form-control">
+            <p class="form-hint">
+                Module has <span x-text="existingLevelCount"></span> levels.
+                New levels will be numbered <span x-text="startNumber"></span>-<span x-text="endNumber"></span>
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label>Grid Layout (All Levels)</label>
+            <div class="grid-config">
+                <div>
+                    <label>Rows</label>
+                    <select x-model="rowType" class="form-control">
+                        <option value="letters">Letters (A, B, C...)</option>
+                        <option value="numbers">Numbers (1, 2, 3...)</option>
+                    </select>
+                    <input type="number" x-model.number="rowCount" min="1" max="26" class="form-control">
+                    <span class="grid-preview" x-text="rowPreview()"></span>
+                </div>
+
+                <div>
+                    <label>Columns</label>
+                    <select x-model="colType" class="form-control">
+                        <option value="numbers">Numbers (1, 2, 3...)</option>
+                        <option value="letters">Letters (A, B, C...)</option>
+                    </select>
+                    <input type="number" x-model.number="colCount" min="1" max="26" class="form-control">
+                    <span class="grid-preview" x-text="colPreview()"></span>
+                </div>
+            </div>
+
+            <div class="grid-summary">
+                Total locations per level: <strong x-text="rowCount * colCount"></strong>
+                <br>
+                Total locations to create: <strong x-text="levelCount * rowCount * colCount"></strong>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" x-model="customNames">
+                Custom level names (optional)
+            </label>
+        </div>
+
+        <div x-show="customNames" class="custom-names-input">
+            <label>Name Template (use {n} for level number)</label>
+            <input type="text" x-model="nameTemplate" placeholder="e.g., Drawer {n}, Shelf {n}"
+                   class="form-control">
+            <p class="form-hint">Example: "Drawer {n}" → "Drawer 1", "Drawer 2", ...</p>
+        </div>
+
+        <div class="bulk-create-actions">
+            <button @click="createLevels()" class="btn btn-primary" :disabled="creating">
+                <span x-show="!creating">Create <span x-text="levelCount"></span> Levels</span>
+                <span x-show="creating">Creating...</span>
+            </button>
+            <button @click="showBulkCreate = false" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function bulkLevelState() {
+    return {
+        showBulkCreate: false,
+        creating: false,
+        existingLevelCount: {{ module.levels|length }},
+        levelCount: 1,
+        rowType: 'letters',
+        rowCount: 3,
+        colType: 'numbers',
+        colCount: 8,
+        customNames: false,
+        nameTemplate: 'Level {n}',
+
+        get startNumber() {
+            return this.existingLevelCount + 1;
+        },
+
+        get endNumber() {
+            return this.existingLevelCount + this.levelCount;
+        },
+
+        rowPreview() {
+            if (this.rowType === 'letters') {
+                const end = String.fromCharCode(64 + this.rowCount);
+                return `A-${end}`;
+            }
+            return `1-${this.rowCount}`;
+        },
+
+        colPreview() {
+            if (this.colType === 'letters') {
+                const end = String.fromCharCode(64 + this.colCount);
+                return `A-${end}`;
+            }
+            return `1-${this.colCount}`;
+        },
+
+        async createLevels() {
+            this.creating = true;
+            try {
+                const response = await fetch(`/modules/{{ module.id }}/levels/bulk-create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        count: this.levelCount,
+                        start_number: this.startNumber,
+                        row_type: this.rowType,
+                        row_count: this.rowCount,
+                        col_type: this.colType,
+                        col_count: this.colCount,
+                        name_template: this.customNames ? this.nameTemplate : null
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                }
+            } catch (error) {
+                alert('Error creating levels');
+            } finally {
+                this.creating = false;
+            }
+        }
+    };
+}
+</script>
+```
+
+**Backend Endpoint:**
+```python
+@bp.route('/<int:module_id>/levels/bulk-create', methods=['POST'])
+def bulk_create_levels(module_id):
+    """Create multiple levels with the same grid configuration"""
+    module = Module.query.get_or_404(module_id)
+    data = request.json
+
+    count = data.get('count', 1)
+    start_number = data.get('start_number', 1)
+    row_type = data.get('row_type', 'letters')
+    row_count = data.get('row_count', 3)
+    col_type = data.get('col_type', 'numbers')
+    col_count = data.get('col_count', 8)
+    name_template = data.get('name_template')
+
+    # Validation
+    if count < 1 or count > 50:
+        return jsonify({'error': 'Count must be between 1 and 50'}), 400
+    if row_count < 1 or row_count > 26:
+        return jsonify({'error': 'Row count must be between 1 and 26'}), 400
+    if col_count < 1 or col_count > 26:
+        return jsonify({'error': 'Column count must be between 1 and 26'}), 400
+
+    created_levels = []
+
+    for i in range(count):
+        level_number = start_number + i
+
+        # Generate level name
+        if name_template:
+            level_name = name_template.replace('{n}', str(level_number))
+        else:
+            level_name = None  # Will default to "Level N" in display
+
+        # Create level
+        level = Level(
+            module_id=module_id,
+            level_number=level_number,
+            name=level_name,
+            row_count=row_count,
+            column_count=col_count
+        )
+        db.session.add(level)
+        db.session.flush()  # Get level.id
+
+        # Create locations for this level
+        for row_idx in range(row_count):
+            for col_idx in range(col_count):
+                # Generate row label
+                if row_type == 'letters':
+                    row_label = chr(65 + row_idx)  # A, B, C...
+                else:
+                    row_label = str(row_idx + 1)
+
+                # Generate column label
+                if col_type == 'letters':
+                    col_label = chr(65 + col_idx)
+                else:
+                    col_label = str(col_idx + 1)
+
+                location = Location(
+                    level_id=level.id,
+                    row=row_label,
+                    column=col_label,
+                    location_type='general'
+                )
+                db.session.add(location)
+
+        created_levels.append(level)
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'created_count': len(created_levels),
+        'levels': [{'id': l.id, 'level_number': l.level_number, 'name': l.name}
+                   for l in created_levels]
+    })
+```
+
+**CSS:**
+```css
+.bulk-level-creator {
+    margin-bottom: 2rem;
+}
+
+.bulk-create-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.grid-config {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.grid-preview {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg-color);
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.grid-summary {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-color);
+    border-radius: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.custom-names-input {
+    margin-top: 1rem;
+}
+
+.bulk-create-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+```
+
+**Acceptance Criteria:**
+- User can specify number of levels to create (1-50)
+- System automatically numbers new levels starting after existing levels
+- All levels created with same grid configuration (rows × columns)
+- Row/column labels can be letters or numbers
+- Optional custom name template with {n} placeholder
+- Preview shows level numbering and grid dimensions
+- Single transaction creates all levels and locations
+- Success redirects to module view showing new levels
+
+**Estimated Effort:** 6 hours
+
+---
+
+### Task 7.2: Bulk Item Movement API
+
+**File:** `backend/app/routes/items.py`
+
+Add backend endpoints for bulk item operations:
+
+```python
+@bp.route('/bulk-move', methods=['POST'])
+def bulk_move_items():
+    """Move multiple items to new locations"""
+    data = request.json
+    moves = data.get('moves', [])  # [{'item_id': 1, 'location_id': 5}, ...]
+
+    if not moves:
+        return jsonify({'error': 'No moves specified'}), 400
+
+    moved_items = []
+    errors = []
+
+    for move in moves:
+        item_id = move.get('item_id')
+        new_location_id = move.get('location_id')
+
+        item = Item.query.get(item_id)
+        if not item:
+            errors.append(f"Item {item_id} not found")
+            continue
+
+        # Check if target location exists
+        if new_location_id is not None:
+            new_location = Location.query.get(new_location_id)
+            if not new_location:
+                errors.append(f"Location {new_location_id} not found")
+                continue
+
+            # Check if location is occupied
+            existing_item = Item.query.filter_by(location_id=new_location_id).first()
+            if existing_item and existing_item.id != item_id:
+                errors.append(
+                    f"Location {new_location.full_address()} already occupied by {existing_item.name}"
+                )
+                continue
+
+        # Perform move
+        item.location_id = new_location_id
+        moved_items.append(item)
+
+    db.session.commit()
+
+    return jsonify({
+        'success': len(errors) == 0,
+        'moved_count': len(moved_items),
+        'moved_items': [{'id': i.id, 'name': i.name} for i in moved_items],
+        'errors': errors
+    })
+
+@bp.route('/bulk-swap-locations', methods=['POST'])
+def bulk_swap_locations():
+    """Swap items between two locations"""
+    data = request.json
+    item_a_id = data.get('item_a_id')
+    item_b_id = data.get('item_b_id')
+
+    item_a = Item.query.get_or_404(item_a_id)
+    item_b = Item.query.get_or_404(item_b_id)
+
+    # Swap locations
+    temp_location = item_a.location_id
+    item_a.location_id = item_b.location_id
+    item_b.location_id = temp_location
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'swapped': [
+            {'id': item_a.id, 'name': item_a.name, 'new_location': item_a.location.full_address() if item_a.location else None},
+            {'id': item_b.id, 'name': item_b.name, 'new_location': item_b.location.full_address() if item_b.location else None}
+        ]
+    })
+```
+
+**Acceptance Criteria:**
+- API accepts array of item/location pairs
+- Validates all locations before making changes
+- Checks for location occupancy conflicts
+- Returns detailed error messages for failed moves
+- Swap operation exchanges two items' locations atomically
+- All changes in single transaction (rollback on error)
+
+**Estimated Effort:** 3 hours
+
+---
+
+### Task 7.3: Level Swap/Reorder UI
+
+**Files:**
+- `frontend/templates/modules/view.html` (add reorder controls)
+- `backend/app/routes/modules.py` (add swap/reorder endpoints)
+
+Add ability to swap entire levels within a module:
+
+```python
+# Backend endpoint
+@bp.route('/<int:module_id>/levels/swap', methods=['POST'])
+def swap_levels(module_id):
+    """Swap two levels' positions"""
+    module = Module.query.get_or_404(module_id)
+    data = request.json
+
+    level_a_id = data.get('level_a_id')
+    level_b_id = data.get('level_b_id')
+
+    level_a = Level.query.filter_by(id=level_a_id, module_id=module_id).first_or_404()
+    level_b = Level.query.filter_by(id=level_b_id, module_id=module_id).first_or_404()
+
+    # Swap level_numbers
+    temp_number = level_a.level_number
+    level_a.level_number = level_b.level_number
+    level_b.level_number = temp_number
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'swapped': [
+            {'id': level_a.id, 'new_number': level_a.level_number},
+            {'id': level_b.id, 'new_number': level_b.level_number}
+        ]
+    })
+
+@bp.route('/<int:module_id>/levels/reorder', methods=['POST'])
+def reorder_levels(module_id):
+    """Reorder all levels by providing array of level IDs"""
+    module = Module.query.get_or_404(module_id)
+    data = request.json
+    level_ids = data.get('level_ids', [])
+
+    for index, level_id in enumerate(level_ids, start=1):
+        level = Level.query.filter_by(id=level_id, module_id=module_id).first()
+        if level:
+            level.level_number = index
+
+    db.session.commit()
+
+    return jsonify({'success': True})
+```
+
+**Frontend UI (simple version):**
+```html
+<!-- Add to each level in the list -->
+<div class="level-reorder-controls">
+    <button @click="swapWithPrevious(level.id)" class="btn-icon" :disabled="isFirst">↑</button>
+    <button @click="swapWithNext(level.id)" class="btn-icon" :disabled="isLast">↓</button>
+</div>
+```
+
+**Acceptance Criteria:**
+- Swap adjacent levels using up/down arrows
+- Level numbers update to reflect new order
+- Module view refreshes to show new order
+- Items remain in their original levels (only level order changes)
+
+**Estimated Effort:** 3 hours
+
+---
+
+### Task 7.4: Bulk Item Move UI (Future Enhancement)
+
+**Priority:** Low (deferred to future phase)
+
+Add interactive UI for moving multiple items at once:
+- Multi-select items in level grid
+- Drag-and-drop to new locations
+- Clipboard-style "cut and paste" workflow
+- Visual feedback for valid/invalid drop targets
+
+**Estimated Effort:** 8 hours (deferred)
+
+---
+
 ## Summary Timeline (Updated)
 
 | Phase | Tasks | Estimated Hours | Priority |
@@ -1582,16 +2164,19 @@ __pycache__/
 | Phase 3: Search Interface | 4 tasks | 14 hours | Critical ✅ |
 | Phase 4: Configuration | 2 tasks | 6 hours | Medium |
 | Phase 5: Testing & Refinement | 3 tasks | 12 hours | High |
-| Phase 6: Item Photo Management | 6 tasks | 19 hours | High |
-| **TOTAL** | **21 tasks** | **69 hours** | - |
+| Phase 6: Item Photo Management | 7 tasks | 21 hours | High |
+| Phase 7: Bulk Operations | 3 tasks | 12 hours | Medium |
+| **TOTAL** | **25 tasks** | **83 hours** | - |
 
 **Recommended Development Order:**
-1. Phase 1 (backend) - provides data for frontend
-2. Phase 2 (module grid) - core visual foundation
-3. Phase 3 (search) - primary interaction mechanism
-4. Phase 5.1 (testing) - validate functionality
-5. Phase 4 (configuration) - polish and flexibility
-6. Phase 5.2-5.3 (optimization & docs) - production readiness
+1. Phase 1 (backend) - provides data for frontend ✅
+2. Phase 2 (module grid) - core visual foundation ✅
+3. Phase 3 (search) - primary interaction mechanism ✅
+4. Phase 7 (bulk operations) - essential efficiency features
+5. Phase 6 (photo management) - visual enhancements
+6. Phase 5.1 (testing) - validate functionality
+7. Phase 4 (configuration) - polish and flexibility
+8. Phase 5.2-5.3 (optimization & docs) - production readiness
 
 ---
 
@@ -1632,10 +2217,12 @@ User Input (Search)
 1. **Visual Grid Preview:** Show miniature grid in module cell on hover
 2. **Keyboard Navigation:** Arrow keys to navigate module grid and search results
 3. **Search Filters:** Filter by category, location, date added
-4. **Batch Operations:** Select multiple items from search results
+4. **Drag-and-Drop Bulk Operations:** Multi-select items and drag to new locations (Phase 7.4)
 5. **Location Heatmap:** Color-code modules by occupancy percentage
 6. **Recent Activity Timeline:** Show recent item additions/moves on dashboard
 7. **Export Function:** Export search results or full inventory to CSV/JSON
+8. **Bulk Level Operations:** Copy/duplicate levels, bulk edit grid dimensions
+9. **Item Movement History:** Track and display item location history
 
 ---
 
@@ -1697,7 +2284,15 @@ After implementation, measure:
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Last Updated:** 2025-10-27
 **Author:** Claude Code
-**Status:** Draft - Awaiting Review
+**Status:** In Progress
+
+**Changelog:**
+- v1.1 (2025-10-27): Added Phase 7 (Bulk Operations & Level Management) with 3 tasks
+  - Task 7.1: Bulk Level Creation UI (6 hours)
+  - Task 7.2: Bulk Item Movement API (3 hours)
+  - Task 7.3: Level Swap/Reorder UI (3 hours)
+  - Task 7.4: Bulk Item Move UI (deferred)
+- v1.0 (2025-10-27): Initial roadmap with Phases 1-6
