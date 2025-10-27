@@ -29,7 +29,6 @@
             <th>Name</th>
             <th>Description</th>
             <th>Category</th>
-            <th>Quantity</th>
             <th>Locations</th>
             <th>Actions</th>
         </tr>
@@ -40,7 +39,6 @@
             <td><strong>{{ item.name }}</strong></td>
             <td>{{ item.description[:100] }}{% if item.description|length > 100 %}...{% endif %}</td>
             <td>{{ item.category or '-' }}</td>
-            <td>{{ item.quantity }}{% if item.unit %} {{ item.unit }}{% endif %}</td>
             <td>
                 {% if item.item_locations %}
                     {% for il in item.item_locations %}

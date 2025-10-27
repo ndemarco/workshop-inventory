@@ -60,7 +60,6 @@
         <tr>
             <th>Item</th>
             <th>Description</th>
-            <th>Quantity</th>
             <th>Notes</th>
             <th>Actions</th>
         </tr>
@@ -74,7 +73,6 @@
                 </a>
             </td>
             <td>{{ il.item.description[:80] }}{% if il.item.description|length > 80 %}...{% endif %}</td>
-            <td>{{ il.quantity }}{% if il.item.unit %} {{ il.item.unit }}{% endif %}</td>
             <td>{{ il.notes or '-' }}</td>
             <td>
                 <a href="{{ url_for('items.view_item', item_id=il.item_id) }}" class="btn-link">View Item</a>

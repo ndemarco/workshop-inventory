@@ -30,18 +30,6 @@
             <span>{{ item.item_type }}</span>
         </div>
         {% endif %}
-
-        <div class="detail-item">
-            <strong>Total Quantity:</strong>
-            <span>{{ item.quantity }}{% if item.unit %} {{ item.unit }}{% endif %}</span>
-        </div>
-
-        {% if item.min_quantity %}
-        <div class="detail-item">
-            <strong>Min Quantity:</strong>
-            <span>{{ item.min_quantity }}{% if item.unit %} {{ item.unit }}{% endif %}</span>
-        </div>
-        {% endif %}
     </div>
 
     {% if item.tags %}
@@ -70,7 +58,6 @@
     <thead>
         <tr>
             <th>Location</th>
-            <th>Quantity</th>
             <th>Notes</th>
             <th>Actions</th>
         </tr>
@@ -83,7 +70,6 @@
                     {{ il.location.full_address() }}
                 </a>
             </td>
-            <td>{{ il.quantity }}{% if item.unit %} {{ item.unit }}{% endif %}</td>
             <td>{{ il.notes or '-' }}</td>
             <td>
                 <form method="POST" action="{{ url_for('items.remove_location', item_id=item.id, item_location_id=il.id) }}" style="display:inline;" onsubmit="return confirm('Remove this location?');">
@@ -113,7 +99,6 @@
             {% endfor %}
             {% endfor %}
         </select>
-        <input type="number" name="quantity" placeholder="Quantity" value="1" min="1" required>
         <input type="text" name="notes" placeholder="Notes (optional)">
         <button type="submit" class="btn btn-primary">Add Location</button>
     </form>
