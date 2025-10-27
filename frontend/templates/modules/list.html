@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Modules - Homelab Inventory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📦 Storage Modules</h1>
+    <a href="{{ url_for('modules.new_module') }}" class="btn btn-primary">+ Add Module</a>
+</div>
+
+{% if modules %}
+<div class="modules-explorer" x-data="{ 
+    expandedModules: {}, 
+    expandedLevels: {},
+    selectedItem: null,
+    
+    toggleModule(moduleId) {
+        this.expandedModules[moduleId] = !this.expandedModules[moduleId];
+    },
+    
+    async toggleLevel(moduleId, levelId) {
+        const key = `${moduleId}-${levelId}`;
+        this.expandedLevels[key] = !this.expandedLevels[key];
+    },
+    
+    selectItem(item) {
+        this.selectedItem = item;
+    }
+}">
+    <!-- Main content area -->
+    <div class="explorer-main">
+        {% for module in modules %}
+        <div class="module-card expandable" :class="{ 'expanded': expandedModules[{{ module.id }}] }">
+            <!-- Module Header -->
+            <div class="module-header" @click="toggleModule({{ module.id }})">
+                <div class="module-title">
+                    <span class="expand-icon" :class="{ 'expanded': expandedModules[{{ module.id }}] }">▶</span>
+                    <h3>{{ module.name }}</h3>
+                </div>
+                <div class="module-meta">
+                    <span class="badge">{{ module.levels|length }} levels</span>
+                    {% set total_locations = module.levels|map(attribute='locations')|map('length')|sum %}
+                    <span class="badge">{{ total_locations }} locations</span>
+                    <div class="module-actions" @click.stop>
+                        <a href="{{ url_for('modules.view_module', module_id=module.id) }}" class="btn btn-sm">View</a>
+                        <a href="{{ url_for('modules.edit_module', module_id=module.id) }}" class="btn btn-sm">Edit</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module Description -->
+            {% if module.description %}
+            <div class="module-description" x-show="expandedModules[{{ module.id }}]" x-collapse>
+                <p>{{ module.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Levels List (Expandable) -->
+            <div class="levels-container" x-show="expandedModules[{{ module.id }}]" x-collapse>
+                {% for level in module.levels %}
+                <div class="level-card expandable" :class="{ 'expanded': expandedLevels['{{ module.id }}-{{ level.id }}'] }">
+                    <!-- Level Header -->
+                    <div class="level-header" @click="toggleLevel({{ module.id }}, {{ level.id }})">
+                        <div class="level-title">
+                            <span class="expand-icon" :class="{ 'expanded': expandedLevels['{{ module.id }}-{{ level.id }}'] }">▶</span>
+                            <h4>Level {{ level.level_number }}{% if level.name %} - {{ level.name }}{% endif %}</h4>
+                        </div>
+                        <div class="level-meta">
+                            <span class="badge-sm">{{ level.rows }}×{{ level.columns }}</span>
+                            {% set occupied = level.locations|selectattr('items')|list|length %}
+                            <span class="badge-sm">{{ occupied }}/{{ level.locations|length }} occupied</span>
+                            <div class="level-actions" @click.stop>
+                                <a href="{{ url_for('modules.view_level', level_id=level.id) }}" class="btn-link">Full View</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Level Grid (Inline Preview) -->
+                    <div class="level-grid-preview" x-show="expandedLevels['{{ module.id }}-{{ level.id }}']" x-collapse>
+                        <div class="grid-container">
+                            <table class="grid-table-compact">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        {% for col in range(1, level.columns + 1) %}
+                                        <th>{{ col }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row_idx in range(level.rows) %}
+                                    {% set row_label = [chr(65 + row_idx)] if level.rows <= 26 else [row_idx + 1|string] %}
+                                    <tr>
+                                        <th>{{ row_label[0] }}</th>
+                                        {% for col in range(1, level.columns + 1) %}
+                                        {% set col_str = col|string %}
+                                        {% set location = level.locations|selectattr('row', 'equalto', row_label[0])|selectattr('column', 'equalto', col_str)|first %}
+                                        {% if location %}
+                                        {% set item = location.items[0] if location.items else none %}
+                                        <td class="grid-cell {% if item %}occupied{% else %}empty{% endif %}"
+                                            {% if item %}
+                                            @mouseenter="selectItem({ name: '{{ item.name|replace("'", "\\'") }}', description: '{{ item.description[:100]|replace("'", "\\'") }}', location: '{{ location.full_address() }}', category: '{{ item.category or "" }}', id: {{ item.id }} })"
+                                            @mouseleave="selectItem(null)"
+                                            {% endif %}
+                                            @click="{% if item %}window.location='{{ url_for('items.view_item', item_id=item.id) }}'{% endif %}">
+                                            <div class="cell-content">
+                                                <div class="cell-address">{{ row_label[0] }}{{ col }}</div>
+                                                {% if item %}
+                                                <div class="cell-item-name">{{ item.name[:15] }}{% if item.name|length > 15 %}...{% endif %}</div>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        {% else %}
+                                        <td class="grid-cell empty">
+                                            <div class="cell-content">
+                                                <div class="cell-address">{{ row_label[0] }}{{ col }}</div>
+                                            </div>
+                                        </td>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Add Level Button -->
+                <div class="add-level-section">
+                    <a href="{{ url_for('modules.new_level', module_id=module.id) }}" class="btn btn-sm btn-secondary">+ Add Level</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sidebar for selected item details -->
+    <div class="sidebar-panel" :class="{ 'visible': selectedItem }" x-show="selectedItem" x-transition>
+        <template x-if="selectedItem">
+            <div class="sidebar-content">
+                <div class="sidebar-header">
+                    <h3 x-text="selectedItem.name"></h3>
+                    <button class="close-btn" @click="selectItem(null)">&times;</button>
+                </div>
+                <div class="sidebar-body">
+                    <div class="detail-group">
+                        <label>Location:</label>
+                        <p x-text="selectedItem.location"></p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Category:</label>
+                        <p x-text="selectedItem.category || 'Uncategorized'"></p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Description:</label>
+                        <p x-text="selectedItem.description"></p>
+                    </div>
+                    <div class="sidebar-actions">
+                        <a :href="`/items/${selectedItem.id}`" class="btn btn-sm btn-primary">View Details</a>
+                        <a :href="`/items/${selectedItem.id}/edit`" class="btn btn-sm btn-secondary">Edit</a>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <p>No modules yet. Create your first storage module to get started!</p>
+    <a href="{{ url_for('modules.new_module') }}" class="btn btn-primary">+ Add Module</a>
+</div>
+{% endif %}
+{% endblock %}
