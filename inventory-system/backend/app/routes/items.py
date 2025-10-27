@@ -43,41 +43,33 @@ def new_item():
         description = request.form.get('description')
         category = request.form.get('category')
         item_type = request.form.get('item_type')
-        quantity = request.form.get('quantity', type=int, default=1)
-        unit = request.form.get('unit')
-        min_quantity = request.form.get('min_quantity', type=int)
         tags = request.form.get('tags')
         notes = request.form.get('notes')
-        
+
         # Location information
         location_id = request.form.get('location_id', type=int)
-        location_quantity = request.form.get('location_quantity', type=int, default=quantity)
-        
+
         if not name or not description:
             flash('Name and description are required', 'error')
             return render_template('items/form.html', modules=Module.query.all())
-        
+
         item = Item(
             name=name,
             description=description,
             category=category,
             item_type=item_type,
-            quantity=quantity,
-            unit=unit,
-            min_quantity=min_quantity,
             tags=tags,
             notes=notes
         )
-        
+
         db.session.add(item)
         db.session.flush()  # Get the item ID
-        
+
         # Add location if provided
         if location_id:
             item_location = ItemLocation(
                 item_id=item.id,
-                location_id=location_id,
-                quantity=location_quantity
+                location_id=location_id
             )
             db.session.add(item_location)
         
@@ -109,9 +101,6 @@ def edit_item(item_id):
         item.description = request.form.get('description')
         item.category = request.form.get('category')
         item.item_type = request.form.get('item_type')
-        item.quantity = request.form.get('quantity', type=int, default=1)
-        item.unit = request.form.get('unit')
-        item.min_quantity = request.form.get('min_quantity', type=int)
         item.tags = request.form.get('tags')
         item.notes = request.form.get('notes')
         
@@ -147,23 +136,21 @@ def add_location(item_id):
     item = Item.query.get_or_404(item_id)
     
     location_id = request.form.get('location_id', type=int)
-    quantity = request.form.get('quantity', type=int, default=1)
     notes = request.form.get('notes')
-    
+
     if not location_id:
         flash('Location is required', 'error')
         return redirect(url_for('items.view_item', item_id=item_id))
-    
+
     # Check if this item-location combination already exists
     existing = ItemLocation.query.filter_by(item_id=item_id, location_id=location_id).first()
     if existing:
         flash('Item is already stored at this location', 'error')
         return redirect(url_for('items.view_item', item_id=item_id))
-    
+
     item_location = ItemLocation(
         item_id=item_id,
         location_id=location_id,
-        quantity=quantity,
         notes=notes
     )
     
