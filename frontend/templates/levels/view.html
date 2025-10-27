@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+
+{% block title %}Level {{ level.level_number }} - {{ level.module.name }}{% endblock %}
+
+{% block content %}
+<div class="level-view">
+    <div class="page-header">
+        <div>
+            <nav class="breadcrumb">
+                <a href="{{ url_for('modules.list_modules') }}">Modules</a> /
+                <a href="{{ url_for('modules.view_module', module_id=level.module_id) }}">{{ level.module.name }}</a> /
+                Level {{ level.level_number }}
+            </nav>
+            <h1>Level {{ level.level_number }}{% if level.name %}: {{ level.name }}{% endif %}</h1>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('modules.edit_level', level_id=level.id) }}" class="btn btn-secondary">Edit Level</a>
+        </div>
+    </div>
+
+    <div class="level-details-card">
+        <div class="detail-row">
+            <strong>Module:</strong>
+            <p><a href="{{ url_for('modules.view_module', module_id=level.module_id) }}">{{ level.module.name }}</a></p>
+        </div>
+
+        {% if level.description %}
+        <div class="detail-row">
+            <strong>Description:</strong>
+            <p>{{ level.description }}</p>
+        </div>
+        {% endif %}
+
+        <div class="detail-row stats">
+            <div class="stat">
+                <span class="stat-label">Grid Size:</span>
+                <span class="stat-value">{{ level.rows }} × {{ level.columns }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Total Locations:</span>
+                <span class="stat-value">{{ level.locations|length }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Occupied:</span>
+                {% set occupied = level.locations|selectattr('items')|list|length %}
+                <span class="stat-value">{{ occupied }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Grid -->
+    <div class="grid-section">
+        <h2>Location Grid</h2>
+
+        <div class="grid-container" style="grid-template-columns: auto repeat({{ level.columns }}, 1fr);">
+            <!-- Column headers -->
+            <div class="grid-cell header"></div>
+            {% for col in range(1, level.columns + 1) %}
+            <div class="grid-cell header">{{ col }}</div>
+            {% endfor %}
+
+            <!-- Get unique row labels -->
+            {% set row_labels = [] %}
+            {% for loc in level.locations %}
+                {% if loc.row not in row_labels %}
+                    {% set _ = row_labels.append(loc.row) %}
+                {% endif %}
+            {% endfor %}
+
+            <!-- Grid rows -->
+            {% for row_label in row_labels|sort %}
+                <div class="grid-cell header">{{ row_label }}</div>
+                {% for col in range(1, level.columns + 1) %}
+                    {% set col_label = col|string %}
+                    {% set location = location_grid.get(row_label, {}).get(col_label) %}
+
+                    <div class="location-cell {% if location and location.items %}occupied{% else %}empty{% endif %}"
+                         x-data="{ showInfo: false }"
+                         @mouseenter="showInfo = true"
+                         @mouseleave="showInfo = false">
+                        <div class="cell-label">{{ row_label }}{{ col_label }}</div>
+
+                        {% if location %}
+                            {% if location.items %}
+                                <div class="cell-status occupied-status">●</div>
+                            {% else %}
+                                <div class="cell-status empty-status">○</div>
+                            {% endif %}
+
+                            <!-- Hover info -->
+                            <div class="cell-info" x-show="showInfo" x-transition>
+                                <strong>{{ location.full_address() }}</strong>
+                                {% if location.items %}
+                                    {% set item = location.items[0] %}
+                                    <p class="item-name">{{ item.name }}</p>
+                                    <a href="{{ url_for('items.view_item', item_id=item.id) }}" class="view-item-link">View Item →</a>
+                                {% else %}
+                                    <p class="empty-text">Empty location</p>
+                                    <p class="empty-hint">Available for storage</p>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="cell-status missing-status">✕</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <div class="grid-legend">
+            <h3>Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-icon occupied-status">●</span>
+                    <span>Occupied</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon empty-status">○</span>
+                    <span>Empty</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location List -->
+    <div class="locations-list-section">
+        <h2>All Locations</h2>
+
+        <div class="locations-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Address</th>
+                        <th>Status</th>
+                        <th>Item</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row_label in row_labels|sort %}
+                        {% for col in range(1, level.columns + 1) %}
+                            {% set col_label = col|string %}
+                            {% set location = location_grid.get(row_label, {}).get(col_label) %}
+                            {% if location %}
+                            <tr class="{% if location.items %}occupied-row{% endif %}">
+                                <td class="address-cell">
+                                    <strong>{{ location.full_address() }}</strong>
+                                </td>
+                                <td>
+                                    {% if location.items %}
+                                    <span class="status-badge occupied">Occupied</span>
+                                    {% else %}
+                                    <span class="status-badge empty">Empty</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if location.items %}
+                                        {% set item = location.items[0] %}
+                                        <a href="{{ url_for('items.view_item', item_id=item.id) }}">
+                                            {{ item.name }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if location.items %}
+                                        <a href="{{ url_for('items.edit_item', item_id=location.items[0].id) }}" class="action-link">Move Item</a>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.level-view {
+    padding: 2rem 0;
+}
+
+.breadcrumb {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.level-details-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.detail-row {
+    margin-bottom: 1.5rem;
+}
+
+.detail-row:last-child {
+    margin-bottom: 0;
+}
+
+.detail-row strong {
+    display: block;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.detail-row p {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.detail-row p a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.detail-row p a:hover {
+    text-decoration: underline;
+}
+
+.detail-row.stats {
+    display: flex;
+    gap: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.grid-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.grid-section h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.grid-container {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 2rem;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.grid-cell {
+    padding: 0.5rem;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #7f8c8d;
+    background: #ecf0f1;
+    min-width: 60px;
+    min-height: 60px;
+}
+
+.grid-cell.header {
+    background: #34495e;
+    color: white;
+    border-color: #2c3e50;
+}
+
+.location-cell {
+    position: relative;
+    min-width: 80px;
+    min-height: 80px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.location-cell.empty {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.location-cell.empty:hover {
+    border-color: #adb5bd;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.location-cell.occupied {
+    background: #e8f5e9;
+    border-color: #4caf50;
+}
+
+.location-cell.occupied:hover {
+    border-color: #388e3c;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.cell-label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.cell-status {
+    font-size: 1.5rem;
+}
+
+.occupied-status {
+    color: #4caf50;
+}
+
+.empty-status {
+    color: #adb5bd;
+}
+
+.missing-status {
+    color: #e74c3c;
+}
+
+.cell-info {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 0.5rem;
+    background: white;
+    border: 2px solid #3498db;
+    border-radius: 6px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 10;
+    min-width: 200px;
+    text-align: left;
+}
+
+.cell-info strong {
+    display: block;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.cell-info .item-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0.25rem 0;
+}
+
+.cell-info .item-qty {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin: 0.25rem 0;
+}
+
+.cell-info .empty-text {
+    color: #7f8c8d;
+    margin: 0.25rem 0;
+}
+
+.cell-info .empty-hint {
+    font-size: 0.85rem;
+    color: #95a5a6;
+    margin: 0.25rem 0;
+}
+
+.view-item-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    color: #3498db;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.view-item-link:hover {
+    text-decoration: underline;
+}
+
+.grid-legend {
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
+
+.grid-legend h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.legend-items {
+    display: flex;
+    gap: 2rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.legend-icon {
+    font-size: 1.2rem;
+}
+
+.locations-list-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.locations-list-section h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.locations-table {
+    overflow-x: auto;
+}
+
+.locations-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.locations-table th {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.locations-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.locations-table tr.occupied-row {
+    background: #f1f8f4;
+}
+
+.address-cell {
+    font-family: monospace;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-badge.occupied {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.empty {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.action-link {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.action-link:hover {
+    text-decoration: underline;
+}
+
+.text-muted {
+    color: #95a5a6;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+@media (max-width: 968px) {
+    .grid-container {
+        font-size: 0.75rem;
+    }
+
+    .location-cell {
+        min-width: 60px;
+        min-height: 60px;
+    }
+
+    .cell-label {
+        font-size: 0.75rem;
+    }
+
+    .cell-status {
+        font-size: 1.2rem;
+    }
+
+    .detail-row.stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}

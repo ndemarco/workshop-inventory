@@ -43,8 +43,6 @@ def new_item():
         description = request.form.get('description')
         category = request.form.get('category')
         item_type = request.form.get('item_type')
-        quantity = request.form.get('quantity', type=int, default=1)
-        unit = request.form.get('unit')
         tags = request.form.get('tags')
         notes = request.form.get('notes')
         location_id = request.form.get('location_id', type=int)
@@ -65,8 +63,6 @@ def new_item():
             description=description,
             category=category,
             item_type=item_type,
-            quantity=quantity,
-            unit=unit,
             tags=tags,
             notes=notes,
             location_id=location_id
@@ -101,8 +97,6 @@ def edit_item(item_id):
         item.description = request.form.get('description')
         item.category = request.form.get('category')
         item.item_type = request.form.get('item_type')
-        item.quantity = request.form.get('quantity', type=int, default=1)
-        item.unit = request.form.get('unit')
         item.tags = request.form.get('tags')
         item.notes = request.form.get('notes')
         

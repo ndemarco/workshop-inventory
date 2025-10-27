@@ -150,8 +150,6 @@ class Item(db.Model):
 
     # Item characteristics
     item_type = db.Column(db.String(50))  # solid, liquid, smd_component, bulk, etc.
-    quantity = db.Column(db.Integer, default=1)  # Quantity at this location
-    unit = db.Column(db.String(20))  # pieces, grams, meters, etc.
     notes = db.Column(db.Text)
     tags = db.Column(db.String(500))  # Comma-separated tags
     
@@ -175,8 +173,6 @@ class Item(db.Model):
             'category': self.category,
             'item_metadata': self.item_metadata,
             'item_type': self.item_type,
-            'quantity': self.quantity,
-            'unit': self.unit,
             'notes': self.notes,
             'tags': self.tags.split(',') if self.tags else [],
             'location_id': self.location_id,

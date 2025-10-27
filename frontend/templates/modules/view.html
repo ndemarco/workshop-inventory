@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}{{ module.name }} - Modules{% endblock %}
+
+{% block content %}
+<div class="module-view">
+    <div class="page-header">
+        <div>
+            <nav class="breadcrumb">
+                <a href="{{ url_for('modules.list_modules') }}">Modules</a> / {{ module.name }}
+            </nav>
+            <h1>{{ module.name }}</h1>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('modules.new_level', module_id=module.id) }}" class="btn btn-primary">+ Add Level</a>
+            <a href="{{ url_for('modules.edit_module', module_id=module.id) }}" class="btn btn-secondary">Edit Module</a>
+        </div>
+    </div>
+
+    <!-- Module Details -->
+    <div class="module-details-card">
+        {% if module.description %}
+        <div class="detail-row">
+            <strong>Description:</strong>
+            <p>{{ module.description }}</p>
+        </div>
+        {% endif %}
+
+        {% if module.location_description %}
+        <div class="detail-row">
+            <strong>Physical Location:</strong>
+            <p>{{ module.location_description }}</p>
+        </div>
+        {% endif %}
+
+        <div class="detail-row stats">
+            <div class="stat">
+                <span class="stat-label">Levels:</span>
+                <span class="stat-value">{{ levels|length }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Total Locations:</span>
+                {% set total_locations = namespace(count=0) %}
+                {% for level in levels %}
+                    {% set total_locations.count = total_locations.count + level.locations|length %}
+                {% endfor %}
+                <span class="stat-value">{{ total_locations.count }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Levels List -->
+    <div class="levels-section">
+        <h2>Levels</h2>
+
+        {% if levels %}
+        <div class="levels-list">
+            {% for level in levels %}
+            <div class="level-card" x-data="{ expanded: false }">
+                <div class="level-header" @click="expanded = !expanded">
+                    <div class="level-info">
+                        <h3>Level {{ level.level_number }}{% if level.name %}: {{ level.name }}{% endif %}</h3>
+                        <span class="level-meta">{{ level.rows }} rows × {{ level.columns }} columns ({{ level.locations|length }} locations)</span>
+                    </div>
+                    <span class="expand-icon" x-text="expanded ? '−' : '+'"></span>
+                </div>
+
+                {% if level.description %}
+                <p class="level-description">{{ level.description }}</p>
+                {% endif %}
+
+                <div class="level-details" x-show="expanded" x-transition>
+                    <!-- Location Grid Preview -->
+                    <div class="grid-preview">
+                        <h4>Location Grid</h4>
+                        <div class="grid-container" style="grid-template-columns: auto repeat({{ level.columns }}, 1fr);">
+                            <!-- Column headers -->
+                            <div class="grid-cell header"></div>
+                            {% for col in range(1, level.columns + 1) %}
+                            <div class="grid-cell header">{{ col }}</div>
+                            {% endfor %}
+
+                            <!-- Grid cells -->
+                            {% set locations_by_pos = {} %}
+                            {% set row_labels = [] %}
+                            {% for loc in level.locations %}
+                                {% set _ = locations_by_pos.update({(loc.row, loc.column): loc}) %}
+                                {% if loc.row not in row_labels %}
+                                    {% set _ = row_labels.append(loc.row) %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% for row_label in row_labels|sort %}
+                                <div class="grid-cell header">{{ row_label }}</div>
+                                {% for col_idx in range(1, level.columns + 1) %}
+                                    {% set col_label = col_idx|string %}
+                                    {% set location = locations_by_pos.get((row_label, col_label)) %}
+                                    <div class="grid-cell {% if location and location.items %}occupied{% endif %}"
+                                         title="{% if location %}{{ location.full_address() }}{% if location.items %} - {{ location.items[0].name }}{% endif %}{% endif %}">
+                                        {% if location %}{{ row_label }}{{ col_label }}{% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="level-actions">
+                        <a href="{{ url_for('modules.view_level', level_id=level.id) }}" class="btn btn-secondary">View Full Grid</a>
+                        <a href="{{ url_for('modules.edit_level', level_id=level.id) }}" class="btn-link">Edit Level</a>
+                        <form method="POST" action="{{ url_for('modules.delete_level', level_id=level.id) }}" style="display: inline;"
+                              onsubmit="return confirm('Are you sure you want to delete this level? All locations and items will be affected.');">
+                            <button type="submit" class="btn-link danger">Delete Level</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No levels yet. Add levels to organize storage locations.</p>
+            <a href="{{ url_for('modules.new_level', module_id=module.id) }}" class="btn btn-primary">+ Add First Level</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="danger-zone">
+        <h3>Danger Zone</h3>
+        <form method="POST" action="{{ url_for('modules.delete_module', module_id=module.id) }}"
+              onsubmit="return confirm('Are you sure you want to delete this module? This will delete all levels, locations, and unassign all items!');">
+            <button type="submit" class="btn btn-danger">Delete Module</button>
+        </form>
+    </div>
+</div>
+
+<style>
+.module-view {
+    padding: 2rem 0;
+}
+
+.breadcrumb {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.module-details-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.detail-row {
+    margin-bottom: 1.5rem;
+}
+
+.detail-row:last-child {
+    margin-bottom: 0;
+}
+
+.detail-row strong {
+    display: block;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.detail-row p {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.detail-row.stats {
+    display: flex;
+    gap: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.levels-section h2 {
+    margin-bottom: 1.5rem;
+}
+
+.levels-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.level-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.level-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.level-info h3 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+}
+
+.level-meta {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.expand-icon {
+    font-size: 1.5rem;
+    color: #3498db;
+    font-weight: bold;
+}
+
+.level-description {
+    color: #555;
+    margin: 1rem 0;
+}
+
+.level-details {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.grid-preview h4 {
+    margin-bottom: 1rem;
+}
+
+.grid-container {
+    display: grid;
+    gap: 4px;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.grid-cell {
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    min-width: 40px;
+}
+
+.grid-cell.header {
+    background: #ecf0f1;
+    font-weight: bold;
+    color: #7f8c8d;
+}
+
+.grid-cell.occupied {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    font-weight: 500;
+}
+
+.level-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.danger-zone {
+    background: #fff5f5;
+    border: 2px solid #e74c3c;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 3rem;
+}
+
+.danger-zone h3 {
+    color: #e74c3c;
+    margin-top: 0;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-link {
+    color: #3498db;
+    padding: 0.5rem;
+    background: none;
+}
+
+.btn-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.btn-link.danger {
+    color: #e74c3c;
+}
+
+.btn-link.danger:hover {
+    color: #c0392b;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.empty-state p {
+    color: #7f8c8d;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .detail-row.stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .grid-container {
+        font-size: 0.75rem;
+    }
+
+    .grid-cell {
+        min-width: 30px;
+        padding: 0.25rem;
+    }
+}
+</style>
+{% endblock %}

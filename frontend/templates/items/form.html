@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}{% if item %}Edit {{ item.name }}{% else %}New Item{% endif %} - Items{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="page-header">
+        <div>
+            <nav class="breadcrumb">
+                <a href="{{ url_for('items.list_items') }}">Items</a> /
+                {% if item %}
+                <a href="{{ url_for('items.view_item', item_id=item.id) }}">{{ item.name }}</a> / Edit
+                {% else %}
+                New Item
+                {% endif %}
+            </nav>
+            <h1>{% if item %}Edit Item{% else %}New Item{% endif %}</h1>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" class="item-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Item Name *</label>
+                    <input type="text"
+                           id="name"
+                           name="name"
+                           value="{{ item.name if item else '' }}"
+                           required
+                           placeholder="e.g., Arduino Uno, 10mm Socket">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text"
+                           id="category"
+                           name="category"
+                           value="{{ item.category if item else '' }}"
+                           placeholder="e.g., electronics, tools, fasteners"
+                           list="category-suggestions">
+                    <datalist id="category-suggestions">
+                        <option value="electronics">
+                        <option value="tools">
+                        <option value="components">
+                        <option value="hardware">
+                        <option value="fasteners">
+                        <option value="materials">
+                    </datalist>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description *</label>
+                <textarea id="description"
+                          name="description"
+                          rows="4"
+                          required
+                          placeholder="Natural language description of the item...">{{ item.description if item else '' }}</textarea>
+                <small>Describe the item in plain language - this helps with searching</small>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="item_type">Item Type</label>
+                    <select id="item_type" name="item_type">
+                        <option value="">Select type...</option>
+                        <option value="solid" {% if item and item.item_type == 'solid' %}selected{% endif %}>Solid</option>
+                        <option value="liquid" {% if item and item.item_type == 'liquid' %}selected{% endif %}>Liquid</option>
+                        <option value="smd_component" {% if item and item.item_type == 'smd_component' %}selected{% endif %}>SMD Component</option>
+                        <option value="bulk" {% if item and item.item_type == 'bulk' %}selected{% endif %}>Bulk</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="tags">Tags</label>
+                <input type="text"
+                       id="tags"
+                       name="tags"
+                       value="{{ item.tags if item else '' }}"
+                       placeholder="Comma-separated tags: microcontroller, arduino, atmega328">
+            </div>
+
+            <div class="form-group">
+                <label for="location_id">Storage Location</label>
+                <select id="location_id" name="location_id">
+                    <option value="">No location assigned</option>
+                    {% for module in modules %}
+                        <optgroup label="{{ module.name }}">
+                            {% for level in module.levels %}
+                                {% for location in level.locations %}
+                                    <option value="{{ location.id }}"
+                                            {% if item and item.location_id == location.id %}selected{% endif %}
+                                            {% if location.items and (not item or location.items[0].id != item.id) %}disabled{% endif %}>
+                                        {{ location.full_address() }}
+                                        {% if location.items and (not item or location.items[0].id != item.id) %}
+                                            (Occupied by {{ location.items[0].name }})
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                </select>
+                <small>Occupied locations are disabled</small>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes"
+                          name="notes"
+                          rows="3"
+                          placeholder="Additional notes...">{{ item.notes if item else '' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {% if item %}Update Item{% else %}Create Item{% endif %}
+                </button>
+                <a href="{% if item %}{{ url_for('items.view_item', item_id=item.id) }}{% else %}{{ url_for('items.list_items') }}{% endif %}"
+                   class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-page {
+    padding: 2rem 0;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.breadcrumb {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+.form-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.item-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group select option:disabled {
+    color: #bbb;
+}
+
+.form-group small {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+    .form-page {
+        padding: 1rem;
+    }
+
+    .form-container {
+        padding: 1.5rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

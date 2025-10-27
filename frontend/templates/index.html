@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Homelab Inventory System{% endblock %}
+
+{% block content %}
+<div class="dashboard" x-data="{ expandedModule: null }">
+    <h1>Dashboard</h1>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+                <h3>{{ stats['modules'] }}</h3>
+                <p>Modules</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+                <h3>{{ stats['levels'] }}</h3>
+                <p>Levels</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📍</div>
+            <div class="stat-info">
+                <h3>{{ stats['locations'] }}</h3>
+                <p>Locations</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-info">
+                <h3>{{ stats['items'] }}</h3>
+                <p>Items</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="action-buttons">
+            <a href="{{ url_for('items.new_item') }}" class="btn btn-primary">+ Add Item</a>
+            <a href="{{ url_for('modules.new_module') }}" class="btn btn-secondary">+ Add Module</a>
+            <a href="{{ url_for('search.search') }}" class="btn btn-secondary">🔍 Search</a>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="dashboard-columns">
+        <!-- Recent Items -->
+        <div class="dashboard-section">
+            <h2>Recent Items</h2>
+            {% if recent_items %}
+                <div class="items-list">
+                    {% for item in recent_items %}
+                    <div class="item-card">
+                        <div class="item-header">
+                            <h3>{{ item.name }}</h3>
+                            {% if item.category %}
+                            <span class="badge badge-{{ item.category }}">{{ item.category }}</span>
+                            {% endif %}
+                        </div>
+                        {% if item.description %}
+                        <p class="item-description">{{ item.description }}</p>
+                        {% endif %}
+                        <div class="item-meta">
+                            {% if item.location %}
+                            <span class="item-location">📍 {{ item.location.full_address() }}</span>
+                            {% else %}
+                            <span class="item-location text-muted">No location assigned</span>
+                            {% endif %}
+                        </div>
+                        <div class="item-actions">
+                            <a href="{{ url_for('items.view_item', item_id=item.id) }}" class="btn-link">View</a>
+                            <a href="{{ url_for('items.edit_item', item_id=item.id) }}" class="btn-link">Edit</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-state">No items yet. <a href="{{ url_for('items.new_item') }}">Add your first item</a></p>
+            {% endif %}
+        </div>
+
+        <!-- Storage Modules -->
+        <div class="dashboard-section">
+            <h2>Storage Modules</h2>
+            {% if modules %}
+                <div class="modules-list">
+                    {% for module in modules %}
+                    <div class="module-card" x-data="{ expanded: false }">
+                        <div class="module-header" @click="expanded = !expanded">
+                            <h3>{{ module.name }}</h3>
+                            <span class="expand-icon" x-text="expanded ? '−' : '+'"></span>
+                        </div>
+
+                        {% if module.description %}
+                        <p class="module-description">{{ module.description }}</p>
+                        {% endif %}
+
+                        <div class="module-stats">
+                            <span>{{ module.levels|length }} levels</span>
+                            {% set location_count = namespace(total=0) %}
+                            {% for level in module.levels %}
+                                {% set location_count.total = location_count.total + level.locations|length %}
+                            {% endfor %}
+                            <span>{{ location_count.total }} locations</span>
+                        </div>
+
+                        <div class="module-details" x-show="expanded" x-transition>
+                            {% if module.levels %}
+                            <ul class="levels-list">
+                                {% for level in module.levels %}
+                                <li>
+                                    <strong>{{ level.name }}</strong> -
+                                    {{ level.rows }} rows × {{ level.columns }} columns
+                                    ({{ level.locations|length }} locations)
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            <div class="module-actions">
+                                <a href="{{ url_for('modules.view_module', module_id=module.id) }}" class="btn-link">View Details</a>
+                                <a href="{{ url_for('modules.edit_module', module_id=module.id) }}" class="btn-link">Edit</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-state">No modules yet. <a href="{{ url_for('modules.new_module') }}">Create your first module</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard {
+    padding: 2rem 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 2rem;
+    color: #2c3e50;
+}
+
+.stat-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.quick-actions {
+    margin-bottom: 2rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.dashboard-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 968px) {
+    .dashboard-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dashboard-section {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dashboard-section h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+.items-list, .modules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.item-card, .module-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 1rem;
+    transition: box-shadow 0.2s;
+}
+
+.item-card:hover, .module-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.item-header, .module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.module-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.item-header h3, .module-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2c3e50;
+}
+
+.expand-icon {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.badge-electronics { background: #e3f2fd; color: #1976d2; }
+.badge-tools { background: #fff3e0; color: #f57c00; }
+.badge-components { background: #f3e5f5; color: #7b1fa2; }
+.badge-hardware { background: #e8f5e9; color: #388e3c; }
+
+.item-description, .module-description {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0.5rem 0;
+}
+
+.item-meta, .module-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin: 0.5rem 0;
+}
+
+.item-location {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.item-actions, .module-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.levels-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.levels-list li {
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    text-align: center;
+    color: #7f8c8d;
+    padding: 2rem;
+    font-style: italic;
+}
+
+.text-muted {
+    color: #95a5a6;
+}
+
+.btn, .btn-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.btn-link {
+    color: #3498db;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+</style>
+{% endblock %}

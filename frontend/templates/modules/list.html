@@ -88,13 +88,20 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for row_idx in range(level.rows) %}
-                                    {% set row_label = [chr(65 + row_idx)] if level.rows <= 26 else [row_idx + 1|string] %}
+                                    {# Get unique row labels from locations #}
+                                    {% set row_labels = [] %}
+                                    {% for loc in level.locations %}
+                                        {% if loc.row not in row_labels %}
+                                            {% set _ = row_labels.append(loc.row) %}
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% for row_label in row_labels|sort %}
                                     <tr>
-                                        <th>{{ row_label[0] }}</th>
+                                        <th>{{ row_label }}</th>
                                         {% for col in range(1, level.columns + 1) %}
                                         {% set col_str = col|string %}
-                                        {% set location = level.locations|selectattr('row', 'equalto', row_label[0])|selectattr('column', 'equalto', col_str)|first %}
+                                        {% set location = level.locations|selectattr('row', 'equalto', row_label)|selectattr('column', 'equalto', col_str)|first %}
                                         {% if location %}
                                         {% set item = location.items[0] if location.items else none %}
                                         <td class="grid-cell {% if item %}occupied{% else %}empty{% endif %}"
@@ -104,7 +111,7 @@
                                             {% endif %}
                                             @click="{% if item %}window.location='{{ url_for('items.view_item', item_id=item.id) }}'{% endif %}">
                                             <div class="cell-content">
-                                                <div class="cell-address">{{ row_label[0] }}{{ col }}</div>
+                                                <div class="cell-address">{{ row_label }}{{ col }}</div>
                                                 {% if item %}
                                                 <div class="cell-item-name">{{ item.name[:15] }}{% if item.name|length > 15 %}...{% endif %}</div>
                                                 {% endif %}
@@ -113,7 +120,7 @@
                                         {% else %}
                                         <td class="grid-cell empty">
                                             <div class="cell-content">
-                                                <div class="cell-address">{{ row_label[0] }}{{ col }}</div>
+                                                <div class="cell-address">{{ row_label }}{{ col }}</div>
                                             </div>
                                         </td>
                                         {% endif %}

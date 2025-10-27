@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}Items - Homelab Inventory System{% endblock %}
+
+{% block content %}
+<div class="items-page" x-data="{ selectedCategory: '', searchQuery: '' }">
+    <div class="page-header">
+        <h1>Items</h1>
+        <a href="{{ url_for('items.new_item') }}" class="btn btn-primary">+ Add Item</a>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="filters-section">
+        <form method="GET" action="{{ url_for('items.list_items') }}" class="filters-form">
+            <div class="filter-group">
+                <input type="text"
+                       name="search"
+                       placeholder="Search items..."
+                       value="{{ request.args.get('search', '') }}"
+                       class="search-input">
+            </div>
+
+            <div class="filter-group">
+                <select name="category" class="category-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>
+                        {{ cat }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-secondary">Filter</button>
+
+            {% if request.args.get('search') or request.args.get('category') %}
+            <a href="{{ url_for('items.list_items') }}" class="btn btn-link">Clear Filters</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Items Count -->
+    <div class="items-count">
+        <p>Showing {{ items|length }} item{{ 's' if items|length != 1 else '' }}</p>
+    </div>
+
+    <!-- Items List -->
+    {% if items %}
+    <div class="items-grid">
+        {% for item in items %}
+        <div class="item-card">
+            <div class="item-card-header">
+                <h3>
+                    <a href="{{ url_for('items.view_item', item_id=item.id) }}">{{ item.name }}</a>
+                </h3>
+                {% if item.category %}
+                <span class="badge badge-{{ item.category }}">{{ item.category }}</span>
+                {% endif %}
+            </div>
+
+            <p class="item-description">{{ item.description|truncate(100) }}</p>
+
+            <div class="item-meta">
+                <div class="meta-row">
+                    <span class="meta-label">Location:</span>
+                    {% if item.location %}
+                    <span class="meta-value location-badge">📍 {{ item.location.full_address() }}</span>
+                    {% else %}
+                    <span class="meta-value text-muted">Not assigned</span>
+                    {% endif %}
+                </div>
+
+                {% if item.tags %}
+                <div class="meta-row">
+                    <span class="meta-label">Tags:</span>
+                    <span class="meta-value tags">
+                        {% for tag in item.tags.split(',') %}
+                        <span class="tag">{{ tag.strip() }}</span>
+                        {% endfor %}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="item-actions">
+                <a href="{{ url_for('items.view_item', item_id=item.id) }}" class="btn-link">View</a>
+                <a href="{{ url_for('items.edit_item', item_id=item.id) }}" class="btn-link">Edit</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No items found.</p>
+        <a href="{{ url_for('items.new_item') }}" class="btn btn-primary">+ Add Your First Item</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.items-page {
+    padding: 2rem 0;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+.filters-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+.filters-form {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-input, .category-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.search-input:focus, .category-select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.items-count {
+    margin-bottom: 1rem;
+    color: #7f8c8d;
+}
+
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.item-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.item-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.item-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.item-card-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    flex: 1;
+}
+
+.item-card-header h3 a {
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.item-card-header h3 a:hover {
+    color: #3498db;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.badge-electronics { background: #e3f2fd; color: #1976d2; }
+.badge-tools { background: #fff3e0; color: #f57c00; }
+.badge-components { background: #f3e5f5; color: #7b1fa2; }
+.badge-hardware { background: #e8f5e9; color: #388e3c; }
+.badge-fasteners { background: #fce4ec; color: #c2185b; }
+.badge-materials { background: #f1f8e9; color: #689f38; }
+
+.item-description {
+    color: #555;
+    margin: 0.75rem 0;
+    line-height: 1.5;
+}
+
+.item-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.meta-row {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.meta-label {
+    font-weight: 600;
+    color: #7f8c8d;
+    min-width: 80px;
+}
+
+.meta-value {
+    color: #2c3e50;
+}
+
+.location-badge {
+    background: #e8f5e9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    background: #ecf0f1;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.item-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.empty-state p {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    margin-bottom: 1.5rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.btn-link {
+    color: #3498db;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.text-muted {
+    color: #95a5a6;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .items-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-form {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}

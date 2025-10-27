@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}{% if module %}Edit {{ module.name }}{% else %}New Module{% endif %} - Modules{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="page-header">
+        <div>
+            <nav class="breadcrumb">
+                <a href="{{ url_for('modules.list_modules') }}">Modules</a> /
+                {% if module %}
+                <a href="{{ url_for('modules.view_module', module_id=module.id) }}">{{ module.name }}</a> / Edit
+                {% else %}
+                New Module
+                {% endif %}
+            </nav>
+            <h1>{% if module %}Edit Module{% else %}New Module{% endif %}</h1>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" class="module-form">
+            <div class="form-group">
+                <label for="name">Module Name *</label>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       value="{{ module.name if module else '' }}"
+                       required
+                       placeholder="e.g., Electronics Cabinet, Tool Chest">
+                <small>Unique name for this storage module</small>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description"
+                          name="description"
+                          rows="4"
+                          placeholder="Describe what this module is used for...">{{ module.description if module else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="location_description">Physical Location</label>
+                <input type="text"
+                       id="location_description"
+                       name="location_description"
+                       value="{{ module.location_description if module else '' }}"
+                       placeholder="e.g., Workshop north wall, Garage shelf 2">
+                <small>Where this module is physically located in your space</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {% if module %}Update Module{% else %}Create Module{% endif %}
+                </button>
+                <a href="{% if module %}{{ url_for('modules.view_module', module_id=module.id) }}{% else %}{{ url_for('modules.list_modules') }}{% endif %}"
+                   class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-page {
+    padding: 2rem 0;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.breadcrumb {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+.form-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.module-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-group small {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+    .form-page {
+        padding: 1rem;
+    }
+
+    .form-container {
+        padding: 1.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

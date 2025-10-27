@@ -5,9 +5,9 @@ from app.models import db
 
 
 def create_app():
-    app = Flask(__name__, 
-                template_folder='../../frontend/templates',
-                static_folder='../../frontend/static')
+    app = Flask(__name__,
+                template_folder='/app/frontend/templates',
+                static_folder='/app/frontend/static')
     
     # Configuration
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
