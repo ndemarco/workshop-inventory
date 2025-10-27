@@ -94,6 +94,7 @@
          x-data="locationDetailState()"
          x-show="visible"
          @show-location-detail.window="showDetail($event.detail.locationId)"
+         @keydown.escape.window="visible = false"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="transform translate-x-full"
          x-transition:enter-end="transform translate-x-0"
@@ -326,11 +327,13 @@ function searchState() {
                 alert('This item does not have a location assigned.');
                 return;
             }
+            console.log('viewLocation called with locationId:', locationId);
             // Close search dropdown
             this.searchFocused = false;
             // Clear highlights
             window.dispatchEvent(new CustomEvent('clear-highlight'));
             // Show location detail
+            console.log('Dispatching show-location-detail event');
             window.dispatchEvent(new CustomEvent('show-location-detail', {
                 detail: { locationId }
             }));
@@ -354,11 +357,14 @@ function locationDetailState() {
         },
 
         async showDetail(locationId) {
+            console.log('showDetail called with locationId:', locationId);
             try {
                 const response = await fetch(`/locations/api/locations/${locationId}/detail`);
                 const data = await response.json();
+                console.log('Location detail data:', data);
                 this.location = data;
                 this.visible = true;
+                console.log('Panel should now be visible:', this.visible);
             } catch (error) {
                 console.error('Error loading location details:', error);
                 alert('Error loading location details');
