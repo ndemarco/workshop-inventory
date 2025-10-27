@@ -12,7 +12,9 @@
             <h1>{{ item.name }}</h1>
         </div>
         <div class="header-actions">
-            <a href="{{ url_for('items.edit_item', item_id=item.id) }}" class="btn btn-primary">Edit Item</a>
+            <a href="{{ url_for('items.new_item') }}" class="btn btn-secondary">+ Create New Item</a>
+            <a href="{{ url_for('items.duplicate_item', item_id=item.id) }}" class="btn btn-secondary">📋 Duplicate & Edit</a>
+            <a href="{{ url_for('items.edit_item', item_id=item.id) }}" class="btn btn-primary">✏️ Edit Item</a>
         </div>
     </div>
 

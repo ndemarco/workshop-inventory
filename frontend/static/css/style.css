@@ -587,6 +587,8 @@ body {
     top: 80px;
     z-index: 95;
     margin-bottom: 2rem;
+    background: var(--bg-color);
+    padding: 1rem 0;
 }
 
 .search-bar-wrapper {
@@ -623,17 +625,23 @@ body {
     border-radius: 0.25rem;
 }
 
-/* Search Results Dropdown */
-.search-results-dropdown {
+/* Search Results Container - Always reserves space */
+.search-results-container {
+    margin-top: 0.5rem;
+    height: 240px; /* Fixed height for ~3 results (80px each) */
+    position: relative;
+}
+
+.search-results-content {
     position: absolute;
-    top: calc(100% + 0.5rem);
+    top: 0;
     left: 0;
     right: 0;
+    height: 100%;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    max-height: 400px;
     overflow-y: auto;
     z-index: 100;
 }

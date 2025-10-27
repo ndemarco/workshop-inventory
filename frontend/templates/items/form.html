@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}{% if item %}Edit {{ item.name }}{% else %}New Item{% endif %} - Items{% endblock %}
+{% block title %}
+{% if duplicate %}
+Duplicate {{ item.name }}
+{% elif item %}
+Edit {{ item.name }}
+{% else %}
+New Item
+{% endif %} - Items
+{% endblock %}
 
 {% block content %}
 <div class="form-page">
@@ -8,13 +16,26 @@
         <div>
             <nav class="breadcrumb">
                 <a href="{{ url_for('items.list_items') }}">Items</a> /
-                {% if item %}
+                {% if duplicate %}
+                <a href="{{ url_for('items.view_item', item_id=item.id) }}">{{ item.name }}</a> / Duplicate
+                {% elif item %}
                 <a href="{{ url_for('items.view_item', item_id=item.id) }}">{{ item.name }}</a> / Edit
                 {% else %}
                 New Item
                 {% endif %}
             </nav>
-            <h1>{% if item %}Edit Item{% else %}New Item{% endif %}</h1>
+            <h1>
+                {% if duplicate %}
+                Duplicate Item
+                {% elif item %}
+                Edit Item
+                {% else %}
+                New Item
+                {% endif %}
+            </h1>
+            {% if duplicate %}
+            <p class="duplicate-hint">Creating a copy of "{{ item.name }}". Modify as needed.</p>
+            {% endif %}
         </div>
     </div>
 

@@ -87,6 +87,54 @@ def view_item(item_id):
     return render_template('items/view.html', item=item, modules=modules)
 
 
+@bp.route('/<int:item_id>/duplicate', methods=['GET', 'POST'])
+def duplicate_item(item_id):
+    """Duplicate an item (copy all fields except location)"""
+    original_item = Item.query.get_or_404(item_id)
+
+    if request.method == 'POST':
+        # Create new item with form data
+        name = request.form.get('name')
+        description = request.form.get('description')
+        category = request.form.get('category')
+        item_type = request.form.get('item_type')
+        tags = request.form.get('tags')
+        notes = request.form.get('notes')
+        location_id = request.form.get('location_id', type=int)
+
+        if not name or not description:
+            flash('Name and description are required', 'error')
+            return render_template('items/form.html', item=original_item, modules=Module.query.all(), duplicate=True)
+
+        # Check if location is already occupied
+        if location_id:
+            existing_item = Item.query.filter_by(location_id=location_id).first()
+            if existing_item:
+                flash(f'Location is already occupied by "{existing_item.name}". Please choose another location.', 'error')
+                return render_template('items/form.html', item=original_item, modules=Module.query.all(), duplicate=True)
+
+        # Create duplicate item
+        new_item = Item(
+            name=name,
+            description=description,
+            category=category,
+            item_type=item_type,
+            tags=tags,
+            notes=notes,
+            location_id=location_id
+        )
+
+        db.session.add(new_item)
+        db.session.commit()
+
+        flash(f'Item "{name}" created successfully (duplicated from "{original_item.name}")', 'success')
+        return redirect(url_for('items.view_item', item_id=new_item.id))
+
+    # For GET request, show form with pre-filled data from original item
+    modules = Module.query.order_by(Module.name).all()
+    return render_template('items/form.html', item=original_item, modules=modules, duplicate=True)
+
+
 @bp.route('/<int:item_id>/edit', methods=['GET', 'POST'])
 def edit_item(item_id):
     """Edit an item"""
