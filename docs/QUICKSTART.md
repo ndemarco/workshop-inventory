@@ -1,279 +1,257 @@
-# Quick Deployment Guide
+# WhereTF? - Quick Start Guide
 
-## Prerequisites Check
+## Prerequisites
 
-Before starting, ensure you have:
+Before starting:
 - [ ] Docker installed (`docker --version`)
 - [ ] Docker Compose installed (`docker-compose --version`)
-- [ ] At least 2GB free RAM
-- [ ] At least 10GB free disk space
-- [ ] Ports 8080, 5432, and 5000 available
+- [ ] 4GB RAM available (for AI features)
+- [ ] 20GB disk space
+- [ ] Ports 5000, 5432, 8080, 11434 available
 
-## 5-Minute Deployment
+---
 
-### Step 1: Navigate to Project Directory
+## Deploy in 3 Steps
+
 ```bash
-cd inventory-system
-```
+# 1. Navigate to project
+cd wheretf
 
-### Step 2: Start the System
-```bash
+# 2. Start all services
 docker-compose up -d
+
+# 3. Wait for startup (30-60 seconds)
+docker-compose logs -f backend
+# Look for: "WhereTF? - Bin there, found that."
 ```
 
-Wait for containers to start (usually 30-60 seconds).
+**Access:** http://localhost:8080
 
-### Step 3: Verify Deployment
-```bash
-docker-compose ps
-```
-
-You should see three containers running:
-- `inventory-db` (postgres)
-- `inventory-backend` (flask)
-- `inventory-nginx` (nginx)
-
-### Step 4: Access the Application
-
-Open your web browser and go to:
-```
-http://localhost:8080
-```
-
-You should see the Inventory System dashboard!
+---
 
 ## First-Time Setup
 
-### 1. Create Your First Module
+### 1. Create a Module
+Modules are storage units (cabinets, shelving, etc.)
 
-Click "Modules" → "Add Module"
+**Navigation:** Modules → Add Module
 
-Example:
-- **Name**: Zeus
-- **Description**: Main component storage cabinet
-- **Physical Location**: North wall, workshop
+**Example:**
+```
+Name: Zeus
+Description: Main electronics storage
+Location: North wall, workshop
+```
 
-Click "Create Module"
+### 2. Add a Level
+Levels are shelves/drawers within modules
 
-### 2. Add Levels to Your Module
+**Navigation:** Click module → Add Level
 
-Click on your module name → "Add Level"
+**Example:**
+```
+Level Number: 1
+Name: Top Drawer
+Rows: 4
+Columns: 6
+Description: Small components
+```
 
-Example:
-- **Level Number**: 1
-- **Name**: Top Drawer
-- **Rows**: 4
-- **Columns**: 6
-- **Description**: Small components and fasteners
+This creates a 4×6 grid: A1-A6, B1-B6, C1-C6, D1-D6 (24 locations)
 
-Click "Create Level"
+### 3. Add an Item (AI-Enhanced)
+Items can use AI to generate descriptions
 
-This creates a 4×6 grid of locations (A1-A6, B1-B6, C1-C6, D1-D6)
+**Navigation:** Dashboard → Add Item (or Items → New Item)
 
-### 3. Add Your First Item
+**Example:**
+```
+1. Enter raw input: "M6 hex bolt 50mm zinc"
+2. Click "Generate Description"
+3. AI populates:
+   - Name: M6 Hex Bolt
+   - Description: Hex head bolt, M6 diameter, 50mm length, zinc plated finish
+   - Category: Fasteners
+   - Type: bolt
+   - Tags: M6, hex, bolt, zinc, metric
+4. Select location: Zeus:1:A1
+5. Create Item
+```
 
-Click "Items" → "Add Item"
+### 4. Search for Items
+Two search modes available
 
-Example:
-- **Name**: M6 Bolts
-- **Description**: Hex head bolt, M6 diameter, 50mm long, zinc plated, metric
-- **Category**: Fasteners
-- **Item Type**: solid
-- **Quantity**: 100
-- **Unit**: pieces
-- **Tags**: bolt, metric, m6, hex, zinc
-- **Location**: Zeus:1:A1
+**Keyword Search:**
+- Enter: "M6"
+- Click "Search" button
+- Returns exact matches
 
-Click "Create Item"
+**AI Semantic Search:**
+- Enter: "metric bolt about 5cm long"
+- Click "AI Search" button
+- Returns semantically similar items with scores
 
-### 4. Test Search
+---
 
-Click "Search" and type "M6" or "bolt"
+## Common Operations
 
-You should see your item in the results!
+### View Storage Hierarchy
+```
+Modules → Click module → Click level → See grid → Click location
+```
 
-## Common Tasks
+### Add Location to Existing Item
+```
+Items → Find item → Click "Add Location" → Select → Save
+```
 
-### Viewing Storage Hierarchy
+### Check for Duplicates
+```
+Duplicates → View pending pairs → Review side-by-side → Keep one
+```
 
-1. Click "Modules" to see all storage units
-2. Click a module name to see its levels
-3. Click a level to see the location grid
-4. Click a location to see what's stored there
+### Process Embeddings (Admin)
+```
+Admin → "Process Embeddings" → Generates vectors for AI search
+Admin → "Detect Duplicates" → Finds similar items
+```
 
-### Adding Items to Existing Locations
+---
 
-1. Click "Items" → "Add Item"
-2. Fill in item details
-3. Select location from dropdown
-4. Submit
+## Managing the System
 
-Or:
-
-1. Find the item you want to update
-2. Click "Edit" on the item page
-3. Add a new location
-
-### Searching for Items
-
-1. Click "Search" in the navigation
-2. Type keywords (name, description, tags)
-3. View results with locations
-
-### Editing Location Properties
-
-1. Navigate to the location (Modules → Module → Level → Location)
-2. Click "Edit"
-3. Set location type (small_box, medium_bin, etc.)
-4. Add dimensions if needed
-5. Save
-
-## Stopping the System
-
-### Temporary Stop (keeps data)
+### Start/Stop
 ```bash
+# Stop (keeps data)
 docker-compose stop
-```
 
-### Start Again
-```bash
+# Start again
 docker-compose start
-```
 
-### Complete Shutdown (keeps data)
-```bash
+# Restart service
+docker-compose restart backend
+
+# Shutdown (keeps data)
 docker-compose down
-```
 
-### Nuclear Option (deletes ALL data)
-```bash
+# Reset everything (deletes data!)
 docker-compose down -v
 ```
 
-⚠️ **Warning**: The `-v` flag deletes the database volume. Only use if you want to start fresh!
+### Backup
+```bash
+# Database backup
+docker exec inventory-db pg_dump -U inventoryuser inventory > backup_$(date +%Y%m%d).sql
+
+# Full backup
+tar -czf wheretf-backup-$(date +%Y%m%d).tar.gz data/
+```
+
+### Restore
+```bash
+# Restore database
+docker exec -i inventory-db psql -U inventoryuser inventory < backup.sql
+```
+
+---
 
 ## Troubleshooting
 
-### Container Won't Start
-
+### Services Won't Start
 ```bash
-# Check logs
+# Check status
+docker-compose ps
+
+# View logs
 docker-compose logs backend
-
-# Common issue: Port already in use
-# Solution: Change port in docker-compose.yml or stop conflicting service
-```
-
-### Can't Connect to Database
-
-```bash
-# Check if PostgreSQL is healthy
-docker-compose ps
-
-# Restart PostgreSQL
-docker-compose restart postgres
-
-# Check PostgreSQL logs
 docker-compose logs postgres
+docker-compose logs nginx
+docker-compose logs ollama
+
+# Restart specific service
+docker-compose restart backend
 ```
 
-### Web UI Not Loading
+### Port Already in Use
+Edit `docker-compose.yml`, change the port mapping:
+```yaml
+ports:
+  - "8081:80"  # Changed from 8080
+```
 
+### Can't Access UI
 ```bash
-# Check if nginx is running
-docker-compose ps
-
-# Check nginx logs
+# Check nginx
 docker-compose logs nginx
 
-# Restart nginx
-docker-compose restart nginx
+# Check all services running
+docker-compose ps
+
+# Restart all
+docker-compose restart
 ```
 
-### Port 8080 Already in Use
-
-Edit `docker-compose.yml` and change the nginx port:
-```yaml
-nginx:
-  ports:
-    - "8081:80"  # Changed from 8080 to 8081
-```
-
-Then restart:
+### Database Connection Error
 ```bash
-docker-compose down
-docker-compose up -d
+# Check postgres health
+docker-compose logs postgres
+
+# Wait for healthy status
+docker-compose ps
+# Should show "healthy" for postgres
 ```
 
-## Accessing from Other Devices
+---
 
-To access from other computers on your network:
+## Network Access
 
-1. Find your server's IP address:
-   ```bash
-   hostname -I
-   ```
+### From Other Devices
 
-2. On other devices, open browser to:
-   ```
-   http://YOUR_SERVER_IP:8080
-   ```
-
-Example: `http://192.168.1.100:8080`
-
-## Backup Your Data
-
-### Quick Backup
+1. Find server IP:
 ```bash
-# Backup database
-docker-compose exec postgres pg_dump -U inventoryuser inventory > backup.sql
-
-# Backup everything
-tar -czf inventory-backup-$(date +%Y%m%d).tar.gz data/
+hostname -I
+# or
+ip addr show | grep "inet "
 ```
 
-### Restore from Backup
-```bash
-# Restore database
-docker-compose exec -T postgres psql -U inventoryuser inventory < backup.sql
+2. Access from other devices:
+```
+http://192.168.1.100:8080
 ```
 
-## Performance Tips
+---
 
-### For Better Performance:
+## Security Checklist
 
-1. **Add more RAM** to Docker (Docker Desktop → Resources)
-2. **Use SSD** for the data directory
-3. **Limit concurrent users** (single-user recommended for Phase 1)
+**For local/development use:** Default settings are fine
 
-## Security Notes
+**For production deployment:**
+- [ ] Change database password in `docker-compose.yml`
+- [ ] Set unique `SECRET_KEY` environment variable
+- [ ] Configure firewall rules
+- [ ] Enable HTTPS with reverse proxy
+- [ ] Set up automated backups
+- [ ] Don't expose port 5432 (PostgreSQL)
 
-⚠️ **Important for Production**:
+---
 
-1. Change default PostgreSQL password in `docker-compose.yml`
-2. Set a secure SECRET_KEY in environment variables
-3. Don't expose PostgreSQL port (5432) to the network
-4. Use HTTPS with a reverse proxy
-5. Set up regular backups
+## What's Next?
 
-## Getting Help
+**Immediate:**
+1. Add 10-20 test items
+2. Try both search modes (keyword vs AI)
+3. Test duplicate detection
+4. Explore the admin panel
 
-If you encounter issues:
+**Short-term:**
+- Read [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for workflows
+- Check [ROADMAP.md](ROADMAP.md) for upcoming features
 
-1. Check the logs: `docker-compose logs`
-2. Verify all containers are running: `docker-compose ps`
-3. Try restarting: `docker-compose restart`
-4. Check the main README.md for detailed documentation
-5. Open an issue on GitHub with error logs
+**Long-term:**
+- Organize your full inventory
+- Fine-tune search thresholds based on results
+- Provide feedback on AI feature accuracy
 
-## Next Steps
+---
 
-Once you're comfortable with the basics:
-
-1. ✅ Add more modules for different storage areas
-2. ✅ Organize items into categories
-3. ✅ Use tags for better searchability
-4. ✅ Set up location types for different bin sizes
-5. ✅ Experiment with the grid layout for different storage configs
-
-Enjoy your new inventory system! 🎉
+**System deployed! Start organizing at http://localhost:8080 🚀**
