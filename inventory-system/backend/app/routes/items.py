@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.models import db, Item, ItemLocation, Location, Level, Module
+from app.services.location_suggestions import LocationSuggestionService
 
 bp = Blueprint('items', __name__)
 
@@ -211,3 +212,48 @@ def api_get_item(item_id):
     """API endpoint to get a single item"""
     item = Item.query.get_or_404(item_id)
     return jsonify(item.to_dict())
+
+
+@bp.route('/api/suggest-location', methods=['POST'])
+def api_suggest_location():
+    """API endpoint to suggest locations for an item"""
+    data = request.get_json()
+    
+    # Extract item characteristics from request
+    category = data.get('category')
+    item_type = data.get('item_type')
+    tags = data.get('tags', [])
+    
+    # Handle tags as comma-separated string or list
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(',') if t.strip()]
+    
+    # Optional dimensions
+    width_mm = data.get('width_mm')
+    height_mm = data.get('height_mm')
+    depth_mm = data.get('depth_mm')
+    limit = data.get('limit', 5)
+    
+    # Get suggestions
+    suggestions = LocationSuggestionService.suggest_locations(
+        item_category=category,
+        item_type=item_type,
+        item_tags=tags,
+        width_mm=width_mm,
+        height_mm=height_mm,
+        depth_mm=depth_mm,
+        limit=limit
+    )
+    
+    return jsonify([s.to_dict() for s in suggestions])
+
+
+@bp.route('/api/items/<int:item_id>/suggest-location', methods=['GET'])
+def api_suggest_location_for_item(item_id):
+    """API endpoint to suggest locations for an existing item"""
+    item = Item.query.get_or_404(item_id)
+    limit = request.args.get('limit', 5, type=int)
+    
+    suggestions = LocationSuggestionService.suggest_for_item(item, limit=limit)
+    
+    return jsonify([s.to_dict() for s in suggestions])
