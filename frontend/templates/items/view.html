@@ -86,8 +86,8 @@
 </div>
 {% endif %}
 
-<div class="add-location-section">
-    <h3>Add Storage Location</h3>
+<div class="assign-location-section">
+    <h3>Assign Storage Location</h3>
     <form method="POST" action="{{ url_for('items.add_location', item_id=item.id) }}" class="form-inline">
         <select name="location_id" required>
             <option value="">Select location...</option>
@@ -100,7 +100,7 @@
             {% endfor %}
         </select>
         <input type="text" name="notes" placeholder="Notes (optional)">
-        <button type="submit" class="btn btn-primary">Add Location</button>
+        <button type="submit" class="btn btn-primary">Assign Location</button>
     </form>
 </div>
 

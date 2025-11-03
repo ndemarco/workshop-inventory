@@ -78,7 +78,7 @@ def new_item():
             except Exception as e:
                 flash(f'Warning: Could not check for duplicates: {str(e)}', 'warning')
 
-        # Add location if provided
+        # Assign location if provided
         if location_id:
             item_location = ItemLocation(
                 item_id=item.id,
@@ -200,7 +200,7 @@ def delete_item(item_id):
 
 @bp.route('/<int:item_id>/locations/add', methods=['POST'])
 def add_location(item_id):
-    """Add a location to an item"""
+    """Assign a location to an item"""
     item = Item.query.get_or_404(item_id)
     
     location_id = request.form.get('location_id', type=int)
@@ -224,9 +224,9 @@ def add_location(item_id):
     
     db.session.add(item_location)
     db.session.commit()
-    
+
     location = Location.query.get(location_id)
-    flash(f'Location {location.full_address()} added successfully', 'success')
+    flash(f'Location {location.full_address()} assigned successfully', 'success')
     return redirect(url_for('items.view_item', item_id=item_id))
 
 
