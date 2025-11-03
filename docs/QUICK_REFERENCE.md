@@ -70,19 +70,31 @@ docker-compose down -v && docker-compose up -d
 - Network: `http://YOUR_IP:8080`
 
 ### Navigation
-- **Dashboard** → Overview of inventory
-- **Modules** → Manage storage units
-- **Items** → Browse/add inventory
-- **Search** → Find items
+- **Dashboard** → Google-style search homepage
+- **Modules** → Manage storage units (Zeus, Muse, Apollo)
+- **Locations** → View all storage locations
+- **Search** → Unified keyword and AI search
+- **Duplicates** → Review and resolve similar items
+- **Admin** → Process embeddings, detect duplicates
 
-### Adding Items Flow
-1. Click "Items" → "Add Item"
-2. Fill in name and description
-3. Select category and type
-4. Enter quantity
-5. Choose/create location
-6. Add tags (comma-separated)
+### Adding Items Flow (AI-Enhanced)
+1. Click "Add Item" from dashboard or navigation
+2. Enter short description in "Raw Input" field
+   - Example: "M6 hex bolt 50mm zinc"
+3. Click "Generate Description" button
+4. AI generates:
+   - Item name
+   - Detailed description
+   - Category suggestion
+   - Type suggestion
+   - Relevant tags
+5. Review and edit AI-generated fields as needed
+6. Select location (Module:Level:Location)
 7. Click "Create Item"
+8. System automatically:
+   - Generates semantic embedding
+   - Checks for potential duplicates (>85% similarity)
+   - Shows warning if duplicates found
 
 ### Location Format
 ```
@@ -114,32 +126,76 @@ Apollo:3:C2  → Module "Apollo", Level 3, Location C2
 3. Repeat for other levels
 ```
 
-### Workflow 2: Adding First Item
+### Workflow 2: Adding First Item (AI-Enhanced)
 ```
-1. Items → Add Item
-2. Name: M6 Bolts
-3. Description: Hex head bolt, M6 diameter, 50mm long, zinc plated
-4. Category: Fasteners
-5. Type: solid
-6. Quantity: 100
-7. Unit: pieces
-8. Location: Zeus:1:A3
-9. Tags: bolt, metric, m6, hex
-10. Create Item
+1. Dashboard → Click in search box → Click "Add Item" button
+   (or navigate to Items → New Item)
+
+2. Enter raw description: "M6 hex bolt 50mm zinc"
+
+3. Click "Generate Description"
+
+4. AI populates fields:
+   Name: M6 Hex Bolt
+   Description: Hex head bolt, M6 diameter, 50mm length, zinc plated finish
+   Category: Fasteners
+   Type: bolt
+   Tags: M6, hex, bolt, zinc, metric
+
+5. Review/edit if needed
+
+6. Select location: Zeus:1:A3
+
+7. Create Item
+
+8. System checks for duplicates
+   → If found: "Found 2 potential duplicate(s)"
+   → Review in Duplicates section if needed
 ```
 
-### Workflow 3: Finding Items
+### Workflow 3: Finding Items (Dual Search)
 ```
-Option A: Browse
-1. Modules → Zeus
-2. Level 1
-3. Click location (e.g., A3)
-4. See all items in that location
+Option A: Keyword Search
+1. Dashboard → Enter "M6" in search box
+2. Click "Search" button
+3. View results (exact/partial matches)
+4. Click item for details & location
 
-Option B: Search
-1. Search → Type "M6"
-2. View results
-3. Click item for details & location
+Option B: AI Semantic Search
+1. Dashboard → Enter query: "metric bolt about 5cm long"
+2. Click "AI Search" button
+3. View ranked results with similarity scores
+   → Finds M6 50mm bolt (95% match)
+   → Finds M8 45mm bolt (87% match)
+4. Click item for details
+
+Option C: Browse by Location
+1. Modules → Zeus → Level 1
+2. Click location grid (e.g., A3)
+3. See all items in that location
+```
+
+### Workflow 4: Resolving Duplicates
+```
+1. Navigation → Duplicates
+   (or see flash message: "Found 2 potential duplicate(s)")
+
+2. View list of pending duplicate pairs
+
+3. Click "View Details" on a duplicate pair
+
+4. Review side-by-side comparison:
+   - Item A: "M6 Hex Bolt, 50mm, zinc plated"
+   - Item B: "M6 bolt hexagonal head 50mm zinc"
+   - Similarity: 92%
+
+5. Click "Keep This One" on preferred item
+
+6. Confirm merge:
+   → Locations from deleted item transferred to kept item
+   → Duplicate entry marked as resolved
+
+7. Return to list or dashboard
 ```
 
 ### Workflow 4: Moving Items

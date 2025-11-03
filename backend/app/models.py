@@ -199,6 +199,10 @@ class Item(db.Model):
     notes = db.Column(db.Text)
     tags = db.Column(db.String(500))  # Comma-separated tags
 
+    # Data source tracking for filtering test/sample data
+    # Values: 'user', 'sample_fasteners', 'sample_electronics', 'sample_tools', 'sample_washers', etc.
+    data_source = db.Column(db.String(50), nullable=False, default='user')
+
     # Link to bin (optional - items can exist without being in a bin yet)
     bin_id = db.Column(db.Integer, db.ForeignKey('bins.id'), nullable=True)
 
@@ -222,6 +226,7 @@ class Item(db.Model):
             'item_type': self.item_type,
             'notes': self.notes,
             'tags': self.tags.split(',') if self.tags else [],
+            'data_source': self.data_source,
             'bin': self.bin.to_dict() if self.bin else None,
             'locations': [il.to_dict() for il in self.item_locations],
             'created_at': self.created_at.isoformat() if self.created_at else None,
