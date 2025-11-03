@@ -16,6 +16,13 @@
                 <button type="button" onclick="submitSemanticSearch()" class="btn btn-secondary">AI Search</button>
             </div>
         </form>
+        {% if pending_duplicates and pending_duplicates > 0 %}
+        <div class="duplicates-alert">
+            <a href="{{ url_for('duplicates.list_duplicates') }}" class="btn btn-warning btn-duplicates">
+                🔄 Resolve {{ pending_duplicates }} Duplicate{{ 's' if pending_duplicates != 1 else '' }}
+            </a>
+        </div>
+        {% endif %}
     </div>
 
     <div class="home-action-container">
@@ -87,6 +94,27 @@
 .btn-large {
     padding: 0.75rem 2rem;
     font-size: 1.125rem;
+}
+
+.duplicates-alert {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.btn-duplicates {
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
+    }
 }
 
 /* Footer stats override for home page */
