@@ -25,6 +25,14 @@
             <span>{{ location.location_type }}</span>
         </div>
 
+        <div class="detail-item">
+            <strong>Baseplate Color:</strong>
+            <span>
+                <span class="color-swatch" style="background-color: {{ location.color or '#ffffff' }};"></span>
+                <small class="text-muted">{{ location.color or '' }}</small>
+            </span>
+        </div>
+
         {% if location.width_mm or location.height_mm or location.depth_mm %}
         <div class="detail-item">
             <strong>Dimensions:</strong>

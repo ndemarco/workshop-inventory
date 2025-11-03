@@ -60,6 +60,10 @@ def edit_location(location_id):
         location.width_mm = request.form.get('width_mm', type=float)
         location.height_mm = request.form.get('height_mm', type=float)
         location.depth_mm = request.form.get('depth_mm', type=float)
+        # Color (hex string like #RRGGBB)
+        color_val = request.form.get('color')
+        if color_val:
+            location.color = color_val
         location.notes = request.form.get('notes')
         
         db.session.commit()

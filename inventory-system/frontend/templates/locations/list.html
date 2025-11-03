@@ -34,6 +34,7 @@
     <thead>
         <tr>
             <th>Location</th>
+            <th title="Baseplate/Bin Color">Color</th>
             <th>Module</th>
             <th>Level</th>
             <th>Type</th>
@@ -45,6 +46,10 @@
         {% for location in locations %}
         <tr>
             <td><strong>{{ location.full_address() }}</strong></td>
+            <td>
+                <span class="color-swatch" style="background-color: {{ location.color or '#ffffff' }}" title="{{ location.color or '' }}"></span>
+                <small class="text-muted">{{ location.color or '' }}</small>
+            </td>
             <td>{{ location.level.module.name if location.level and location.level.module else '-' }}</td>
             <td>Level {{ location.level.level_number if location.level else '-' }}</td>
             <td>{{ location.location_type }}</td>

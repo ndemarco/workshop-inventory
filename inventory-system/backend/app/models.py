@@ -90,6 +90,8 @@ class Location(db.Model):
     width_mm = db.Column(db.Float)
     height_mm = db.Column(db.Float)
     depth_mm = db.Column(db.Float)
+    # Visual color for the bin/location (HEX, e.g. #ff0000)
+    color = db.Column(db.String(7), default='#FFFFFF')
     notes = db.Column(db.Text)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -122,6 +124,7 @@ class Location(db.Model):
             'row': self.row,
             'column': self.column,
             'full_address': self.full_address(),
+            'color': self.color,
             'location_type': self.location_type,
             'dimensions': {
                 'width_mm': self.width_mm,

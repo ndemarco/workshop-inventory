@@ -23,6 +23,12 @@
         <small>Type of storage location</small>
     </div>
 
+    <div class="form-group">
+        <label for="color">Baseplate Color</label>
+        <input type="color" id="color" name="color" value="{{ location.color or '#ffffff' }}">
+        <small>Pick a color to match your bin/baseplate for visual identification (e.g., Gridfinity baseplate color)</small>
+    </div>
+
     <h3>Dimensions (optional)</h3>
     <div class="form-row">
         <div class="form-group">

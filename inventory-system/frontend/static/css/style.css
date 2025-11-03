@@ -400,6 +400,22 @@ body {
     gap: 0.5rem;
 }
 
+/* Color swatches for locations */
+.color-swatch {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+    vertical-align: middle;
+    margin-right: 0.5rem;
+}
+
+.text-muted {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
 .level-info {
     display: flex;
     gap: 1rem;
