@@ -4,6 +4,55 @@ from app.models import db, Location, Level, Item, ItemLocation
 bp = Blueprint('locations', __name__)
 
 
+@bp.route('/new', methods=['GET', 'POST'])
+def new_location():
+    """Create a new standalone location"""
+    from app.models import Module
+
+    if request.method == 'POST':
+        level_id = request.form.get('level_id', type=int)
+        row = request.form.get('row')
+        column = request.form.get('column')
+        location_type = request.form.get('location_type', 'general')
+        width_mm = request.form.get('width_mm', type=float)
+        height_mm = request.form.get('height_mm', type=float)
+        depth_mm = request.form.get('depth_mm', type=float)
+        notes = request.form.get('notes')
+
+        if not level_id or not row or not column:
+            flash('Level, row, and column are required', 'error')
+            modules = Module.query.order_by(Module.name).all()
+            return render_template('locations/form.html', modules=modules)
+
+        # Check if location already exists at this position
+        existing = Location.query.filter_by(level_id=level_id, row=row, column=column).first()
+        if existing:
+            flash(f'Location {row}{column} already exists in this level', 'error')
+            modules = Module.query.order_by(Module.name).all()
+            return render_template('locations/form.html', modules=modules)
+
+        location = Location(
+            level_id=level_id,
+            row=row,
+            column=column,
+            location_type=location_type,
+            width_mm=width_mm,
+            height_mm=height_mm,
+            depth_mm=depth_mm,
+            notes=notes
+        )
+
+        db.session.add(location)
+        db.session.commit()
+
+        flash(f'Location {location.full_address()} created successfully', 'success')
+        return redirect(url_for('locations.view_location', location_id=location.id))
+
+    # GET request - show form
+    modules = Module.query.order_by(Module.name).all()
+    return render_template('locations/form.html', modules=modules)
+
+
 @bp.route('/')
 def list_locations():
     """List all locations"""

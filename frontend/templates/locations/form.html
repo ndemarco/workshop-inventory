@@ -1,16 +1,49 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Location - {{ location.full_address() }} - WhereTF?{% endblock %}
+{% block title %}{% if location %}Edit Location - {{ location.full_address() }}{% else %}New Location{% endif %} - WhereTF?{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h1>Edit Location: {{ location.full_address() }}</h1>
+    <h1>{% if location %}Edit Location: {{ location.full_address() }}{% else %}Create New Location{% endif %}</h1>
 </div>
 
 <form method="POST" class="form">
+    {% if not location %}
+    <div class="form-group">
+        <label for="module_id">Module *</label>
+        <select id="module_id" name="module_id" required>
+            <option value="">Select a module...</option>
+            {% for module in modules %}
+            <option value="{{ module.id }}">{{ module.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="level_id">Level *</label>
+        <select id="level_id" name="level_id" required disabled>
+            <option value="">Select a module first...</option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="row">Row *</label>
+            <input type="text" id="row" name="row" required placeholder="A, B, C...">
+            <small>Single letter or number</small>
+        </div>
+
+        <div class="form-group">
+            <label for="column">Column *</label>
+            <input type="text" id="column" name="column" required placeholder="1, 2, 3...">
+            <small>Number identifier</small>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="form-group">
         <label for="location_type">Location Type</label>
-        <input type="text" id="location_type" name="location_type" value="{{ location.location_type }}" list="location_types">
+        <input type="text" id="location_type" name="location_type" value="{{ location.location_type if location else 'general' }}" list="location_types">
         <datalist id="location_types">
             <option value="general">
             <option value="small_box">
@@ -47,9 +80,42 @@
     </div>
 
     <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Update Location</button>
-        <a href="{{ url_for('locations.view_location', location_id=location.id) }}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">{% if location %}Update Location{% else %}Create Location{% endif %}</button>
+        <a href="{% if location %}{{ url_for('locations.view_location', location_id=location.id) }}{% else %}{{ url_for('locations.list_locations') }}{% endif %}" class="btn btn-secondary">Cancel</a>
     </div>
 </form>
+
+{% if not location %}
+<script>
+// Dynamic level loading based on selected module
+document.getElementById('module_id').addEventListener('change', async function() {
+    const moduleId = this.value;
+    const levelSelect = document.getElementById('level_id');
+
+    if (!moduleId) {
+        levelSelect.innerHTML = '<option value="">Select a module first...</option>';
+        levelSelect.disabled = true;
+        return;
+    }
+
+    try {
+        const response = await fetch(`/modules/api/modules/${moduleId}/levels`);
+        const levels = await response.json();
+
+        levelSelect.innerHTML = '<option value="">Select a level...</option>';
+        levels.forEach(level => {
+            const option = document.createElement('option');
+            option.value = level.id;
+            option.textContent = `Level ${level.level_number}${level.name ? ' - ' + level.name : ''}`;
+            levelSelect.appendChild(option);
+        });
+        levelSelect.disabled = false;
+    } catch (error) {
+        console.error('Error loading levels:', error);
+        levelSelect.innerHTML = '<option value="">Error loading levels</option>';
+    }
+});
+</script>
+{% endif %}
 
 {% endblock %}
