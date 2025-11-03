@@ -10,10 +10,10 @@ def search():
     """Search page"""
     query = request.args.get('q', '')
     results = []
-    
+
     if query:
         search_term = f"%{query}%"
-        results = Item.query.filter(
+        results = Item.active_query().filter(
             db.or_(
                 Item.name.ilike(search_term),
                 Item.description.ilike(search_term),
@@ -21,7 +21,7 @@ def search():
                 Item.notes.ilike(search_term)
             )
         ).order_by(Item.name).all()
-    
+
     return render_template('search/results.html', query=query, results=results)
 
 
@@ -34,7 +34,7 @@ def api_search():
         return jsonify({'results': []})
 
     search_term = f"%{query}%"
-    items = Item.query.filter(
+    items = Item.active_query().filter(
         db.or_(
             Item.name.ilike(search_term),
             Item.description.ilike(search_term),

@@ -7,13 +7,14 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 def index():
     """Main dashboard - Google-style search homepage"""
-    total_items = Item.query.count()
+    # Exclude soft-deleted items
+    total_items = Item.active_query().count()
     total_locations = Location.query.count()
 
-    # Calculate occupied locations (locations with at least one item)
+    # Calculate occupied locations (locations with at least one active item)
     from sqlalchemy import func
     from app.models import ItemLocation
-    occupied_locations = Location.query.join(ItemLocation).distinct().count()
+    occupied_locations = Location.query.join(ItemLocation).join(Item).filter(Item.deleted_at.is_(None)).distinct().count()
 
     # Calculate occupancy percentage
     occupancy_percent = (occupied_locations / total_locations * 100) if total_locations > 0 else 0

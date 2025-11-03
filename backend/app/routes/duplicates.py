@@ -117,8 +117,8 @@ def merge_duplicate(duplicate_id):
         print(f"  - Duplicate #{dup.id}: item {dup.item1_id} <-> item {dup.item2_id}")
         db.session.delete(dup)
 
-    # Now we can safely delete the item
-    db.session.delete(delete_item)
+    # Soft-delete the item instead of hard-deleting it
+    delete_item.soft_delete()
 
     db.session.commit()
 

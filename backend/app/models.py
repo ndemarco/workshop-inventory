@@ -208,14 +208,32 @@ class Item(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted_at = db.Column(db.DateTime, nullable=True)  # Soft delete timestamp
 
     # Relationships
     bin = db.relationship('Bin', back_populates='items')
     item_locations = db.relationship('ItemLocation', back_populates='item', cascade='all, delete-orphan')
-    
+
+    @classmethod
+    def active_query(cls):
+        """Return query that excludes soft-deleted items"""
+        return cls.query.filter(cls.deleted_at.is_(None))
+
     def __repr__(self):
         return f'<Item {self.name}>'
-    
+
+    def is_deleted(self):
+        """Check if item is soft-deleted"""
+        return self.deleted_at is not None
+
+    def soft_delete(self):
+        """Soft delete this item"""
+        self.deleted_at = datetime.utcnow()
+
+    def restore(self):
+        """Restore a soft-deleted item"""
+        self.deleted_at = None
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -231,6 +249,7 @@ class Item(db.Model):
             'locations': [il.to_dict() for il in self.item_locations],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'deleted_at': self.deleted_at.isoformat() if self.deleted_at else None,
         }
 
 

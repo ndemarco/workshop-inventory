@@ -37,11 +37,12 @@ def create_app():
         from app.models import Item, Location, ItemLocation
         from sqlalchemy import func
 
-        total_items = Item.query.count()
+        # Exclude soft-deleted items from stats
+        total_items = Item.active_query().count()
         total_locations = Location.query.count()
 
-        # Calculate occupied locations (locations with at least one item)
-        occupied_locations = Location.query.join(ItemLocation).distinct().count()
+        # Calculate occupied locations (locations with at least one active item)
+        occupied_locations = Location.query.join(ItemLocation).join(Item).filter(Item.deleted_at.is_(None)).distinct().count()
 
         # Calculate occupancy percentage
         occupancy_percent = (occupied_locations / total_locations * 100) if total_locations > 0 else 0
