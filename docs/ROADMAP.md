@@ -1,8 +1,15 @@
-# 🗺️ Homelab Inventory System - Complete Roadmap
+# 🗺️ WhereTF? - Complete Roadmap
 
 ## Overview
 
-This document outlines the complete 8-phase development plan. **Phase 1 is complete and deployable now.** Each subsequent phase builds on the previous ones, following the HIIL (Hardware-In-the-Loop) principle where you can deploy and test at each stage.
+This document outlines the complete 8-phase development plan. **Phases 1, 3 (partial), and 4 (partial) are implemented.** Each phase builds on the previous ones, following the HIIL (Hardware-In-the-Loop) principle where you can deploy and test at each stage.
+
+**Latest Updates:**
+- ✅ Project rebranded to "WhereTF? - Bin there, found that."
+- ✅ Semantic search with pgvector implemented
+- ✅ Duplicate detection system implemented
+- ✅ AI services integrated (embeddings, description generation)
+- 🧪 Currently in testing/validation phase
 
 ---
 
@@ -15,23 +22,26 @@ This document outlines the complete 8-phase development plan. **Phase 1 is compl
 ### What's Working Now:
 
 - [x] Complete database schema with proper relationships
-- [x] Docker deployment (PostgreSQL + Flask + nginx)
+- [x] Docker deployment (PostgreSQL + Flask + nginx + Ollama)
 - [x] Storage hierarchy: Modules → Levels → Locations
 - [x] Full CRUD operations via web UI
 - [x] Items with natural language descriptions
 - [x] Basic keyword search
 - [x] Location grid visualization
 - [x] Many-to-many item-location relationships
-- [x] Quantity tracking
 - [x] Category and tag support
 - [x] Sample data generator
+- [x] Search-first UI with omnibox interface
+- [x] Admin panel for system operations
 
 ### Technology Stack:
-- Python 3.11+ with Flask
-- PostgreSQL 15
-- SQLAlchemy ORM
-- Jinja2 templates
-- Docker Compose
+- Python 3.11+ with Flask 3.0
+- PostgreSQL 15 with pgvector extension
+- SQLAlchemy 2.0 ORM with Flask-Migrate
+- Jinja2 templates with custom CSS
+- Docker Compose (4 services)
+- Ollama for AI embeddings (local)
+- sentence-transformers (all-MiniLM-L6-v2)
 
 ### Deliverables:
 1. ✅ Working web application
@@ -135,17 +145,26 @@ CREATE TABLE location_utilization (
 
 ---
 
-## 🔜 Phase 3: Duplicate Detection
+## 🧪 Phase 3: Duplicate Detection
 
-**Status:** 📋 Planned  
-**Timeline:** Week 4  
-**Complexity:** Intermediate  
+**Status:** 🧪 IMPLEMENTED - TESTING
+**Timeline:** Week 4 (Completed ahead of schedule)
+**Complexity:** Intermediate
+
+### Implementation Status:
+- ✅ Embedding-based similarity detection
+- ✅ DuplicateCandidate model for tracking
+- ✅ Side-by-side duplicate comparison UI
+- ✅ Resolution actions (keep/merge)
+- ✅ Admin panel integration
+- 🧪 Pattern recognition (in progress)
+- 🧪 Specification extraction (planned)
 
 ### Goals:
-- Detect when adding duplicate/similar items
-- Parse common specifications automatically
-- Warn before creating near-duplicates
-- Suggest merging or consolidating
+- ✅ Detect when adding duplicate/similar items
+- 🔜 Parse common specifications automatically
+- ✅ Warn before creating near-duplicates
+- ✅ Suggest merging or consolidating
 
 ### Features to Build:
 
@@ -224,17 +243,29 @@ Add intentional duplicates and verify detection works
 
 ---
 
-## 🤖 Phase 4: Semantic Search Foundation
+## 🧪 Phase 4: Semantic Search Foundation
 
-**Status:** 📋 Planned  
-**Timeline:** Weeks 5-6  
-**Complexity:** Advanced  
+**Status:** 🧪 IMPLEMENTED - TESTING
+**Timeline:** Weeks 5-6 (Completed ahead of schedule)
+**Complexity:** Advanced
+
+### Implementation Status:
+- ✅ sentence-transformers integration (all-MiniLM-L6-v2)
+- ✅ pgvector PostgreSQL extension
+- ✅ Embedding generation service
+- ✅ Vector storage (384 dimensions)
+- ✅ Cosine similarity search
+- ✅ Semantic search API endpoint
+- ✅ Unified search UI with omnibox
+- ✅ Admin panel for embedding processing
+- 🧪 Search result ranking (needs tuning)
+- 🔜 Search history tracking
 
 ### Goals:
-- Natural language queries work well
-- Find items by concept, not just keywords
-- "M6 metric bolt" finds "M6 hex head bolt, 50mm"
-- Ranked results by relevance
+- ✅ Natural language queries work well
+- ✅ Find items by concept, not just keywords
+- ✅ "M6 metric bolt" finds "M6 hex head bolt, 50mm"
+- 🧪 Ranked results by relevance (needs validation)
 
 ### Features to Build:
 
@@ -953,15 +984,11 @@ Simple templates
 
 ## Resource Requirements
 
-### Phase 1 (Current):
-- 2GB RAM
-- 10GB disk
-- Any CPU
-
-### Phase 4 (Semantic Search):
-- 4GB RAM (for embeddings)
+### Current System (Phase 1 + 3 + 4):
+- 4GB RAM (for embeddings & AI services)
 - 20GB disk
-- CPU: Any (GPU optional)
+- CPU: Any (GPU optional but not required)
+- Ports: 5000 (Flask), 5432 (PostgreSQL), 8080 (nginx), 11434 (Ollama)
 
 ### Phase 6 (Voice):
 - 4GB RAM
@@ -978,42 +1005,52 @@ Simple templates
 
 ## Timeline Summary
 
-| Phase | Weeks | Effort | Dependencies |
-|-------|-------|--------|--------------|
-| 1 | 1-2 | ✅ Done | None |
-| 2 | 3 | Medium | Phase 1 |
-| 3 | 4 | Medium | Phase 1 |
-| 4 | 5-6 | High | Phase 1 |
-| 5 | 7 | Medium | Phase 1, 4 |
-| 6 | 8-9 | High | Phase 1, 4, 5 |
-| 7 | 10-11 | High | Phase 1, 4 |
-| 8 | 12+ | Medium | All previous |
+| Phase | Status | Effort | Notes |
+|-------|--------|--------|-------|
+| 1 - Foundation | ✅ Complete | Done | Core features working |
+| 2 - Smart Locations | 📋 Planned | Medium | Next priority option |
+| 3 - Duplicate Detection | 🧪 Testing | Done | Needs validation |
+| 4 - Semantic Search | 🧪 Testing | Done | Needs real-world testing |
+| 5 - CLI | 📋 Planned | Medium | Power user feature |
+| 6 - Voice | 📋 Planned | High | Workshop hands-free |
+| 7 - Advanced AI | 📋 Planned | High | ML fine-tuning |
+| 8 - Production Polish | 📋 Planned | Medium | Multi-user, mobile |
 
-**Total:** ~3 months for full system
+**Progress:** Phases 1, 3 (partial), 4 (partial) implemented
+**Current Focus:** Testing and validation of AI features
 
 ---
 
 ## What's Next?
 
-**Immediate:**
-1. Deploy Phase 1
-2. Use it for real inventory
-3. Provide feedback
-4. Identify pain points
+**Immediate (Testing Phase):**
+1. ✅ System deployed and running
+2. 🧪 Test semantic search with real queries
+3. 🧪 Validate duplicate detection accuracy
+4. 📝 Document issues and improvements
+5. 🔧 Fine-tune similarity thresholds
 
-**Soon:**
-1. Decide: Which phase is most important to you?
-   - Need better organization? → Phase 2
-   - Have duplicates? → Phase 3
-   - Want AI search? → Phase 4
-   - Prefer CLI? → Phase 5
-   - Need hands-free? → Phase 6
+**Short Term (Choose Your Priority):**
+1. **Option A: Phase 2 (Smart Locations)**
+   - Auto-suggest storage locations
+   - Space utilization tracking
+   - Better organization workflow
+
+2. **Option B: Improve Phase 3/4**
+   - Add specification parsing (M6, 1kΩ, etc.)
+   - Improve search ranking
+   - Add search history
+   - Fine-tune embedding model
+
+3. **Option C: Phase 5 (CLI)**
+   - Command-line interface for power users
+   - Bulk operations
+   - Import/export tools
 
 **Future:**
-- Phases don't have to be done in order
-- Can skip phases not needed
-- Can combine phases
-- Customize to your needs
+- Phase 6 (Voice) - hands-free workshop use
+- Phase 7 (Advanced AI) - usage analytics, auto-categorization
+- Phase 8 (Production) - mobile app, multi-user, QR codes
 
 ---
 
@@ -1051,15 +1088,39 @@ Document these! They'll inform future phases.
 
 ## Version History
 
-- **v1.0.0 (Phase 1)** - Foundation ✅
-- **v2.0.0 (Phase 2)** - Smart locations 🔜
-- **v3.0.0 (Phase 3)** - Duplicate detection 📋
-- **v4.0.0 (Phase 4)** - AI search 📋
-- **v5.0.0 (Phase 5)** - CLI 📋
-- **v6.0.0 (Phase 6)** - Voice 📋
-- **v7.0.0 (Phase 7)** - Advanced AI 📋
-- **v8.0.0 (Phase 8)** - Production 📋
+- **v1.0.0 (Phase 1)** - Foundation ✅ COMPLETE
+- **v1.5.0** - WhereTF? rebrand, UI overhaul 🧪 TESTING
+- **v2.0.0 (Phase 2)** - Smart locations 🔜 PLANNED
+- **v3.0.0 (Phase 3)** - Duplicate detection 🧪 TESTING
+- **v4.0.0 (Phase 4)** - AI search 🧪 TESTING
+- **v5.0.0 (Phase 5)** - CLI 📋 PLANNED
+- **v6.0.0 (Phase 6)** - Voice 📋 PLANNED
+- **v7.0.0 (Phase 7)** - Advanced AI 📋 PLANNED
+- **v8.0.0 (Phase 8)** - Production polish 📋 PLANNED
+
+**Current Version: v1.5.0** (Foundation + AI Features)
 
 ---
 
-**Ready to build?** Start with Phase 1 (already done!), then pick your next adventure. 🚀
+## Current Priority: Testing & Validation
+
+**What's Working:**
+- ✅ Core inventory management
+- ✅ Semantic search (needs real-world testing)
+- ✅ Duplicate detection (needs validation)
+- ✅ Search-first UI
+- ✅ Admin panel
+
+**Next Steps:**
+1. **Test semantic search** with real inventory data
+2. **Validate duplicate detection** accuracy
+3. **Fine-tune similarity thresholds**
+4. **Add real items** (100+) to stress test
+5. **Decide next priority:**
+   - Phase 2 (Smart locations) for better organization
+   - Phase 5 (CLI) for power users
+   - Improve Phase 3/4 based on testing feedback
+
+---
+
+**Ready to test?** The system is deployed and functional. Time to add real inventory and see how the AI features perform! 🚀
