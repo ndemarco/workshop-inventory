@@ -49,11 +49,11 @@
             {% if stats %}
             <div class="footer-stats">
                 <span class="footer-stat">
-                    <strong>{{ stats.total_items }}</strong> items
+                    <strong>{{ stats.total_items }}</strong> <a href="{{ url_for('search.search') }}" class="footer-stat-link">items</a>
                 </span>
                 <span class="footer-stat-separator">•</span>
                 <span class="footer-stat">
-                    <strong>{{ stats.occupied_locations }}/{{ stats.total_locations }}</strong> locations used
+                    <strong>{{ stats.occupied_locations }}/{{ stats.total_locations }}</strong> <a href="{{ url_for('locations.list_locations') }}" class="footer-stat-link">locations</a> used
                 </span>
                 <span class="footer-stat-separator">•</span>
                 <span class="footer-stat">

@@ -865,6 +865,17 @@ body {
     color: var(--border-color);
 }
 
+.footer-stat-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-stat-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
 /* Top Navigation Actions */
 .nav-actions {
     display: flex;
