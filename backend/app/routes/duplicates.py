@@ -21,14 +21,14 @@ def list_duplicates():
     ).all()
 
     # Count by status
-    stats = {
+    duplicate_stats = {
         'pending': DuplicateCandidate.query.filter_by(status='pending').count(),
         'merged': DuplicateCandidate.query.filter_by(status='merged').count(),
         'dismissed': DuplicateCandidate.query.filter_by(status='dismissed').count(),
         'total': DuplicateCandidate.query.count()
     }
 
-    return render_template('duplicates/list.html', duplicates=duplicates, stats=stats, status_filter=status_filter)
+    return render_template('duplicates/list.html', duplicates=duplicates, duplicate_stats=duplicate_stats, status_filter=status_filter)
 
 
 @bp.route('/<int:duplicate_id>')

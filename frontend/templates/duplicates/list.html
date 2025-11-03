@@ -11,38 +11,38 @@
 <div class="stats-bar">
     <div class="stat-card">
         <span class="stat-label">Pending</span>
-        <span class="stat-value">{{ stats.pending }}</span>
+        <span class="stat-value">{{ duplicate_stats.pending }}</span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Merged</span>
-        <span class="stat-value">{{ stats.merged }}</span>
+        <span class="stat-value">{{ duplicate_stats.merged }}</span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Dismissed</span>
-        <span class="stat-value">{{ stats.dismissed }}</span>
+        <span class="stat-value">{{ duplicate_stats.dismissed }}</span>
     </div>
     <div class="stat-card">
         <span class="stat-label">Total</span>
-        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-value">{{ duplicate_stats.total }}</span>
     </div>
 </div>
 
 <div class="filter-bar">
     <a href="{{ url_for('duplicates.list_duplicates', status='all') }}"
        class="filter-btn {% if status_filter == 'all' %}active{% endif %}">
-        All ({{ stats.total }})
+        All ({{ duplicate_stats.total }})
     </a>
     <a href="{{ url_for('duplicates.list_duplicates', status='pending') }}"
        class="filter-btn {% if status_filter == 'pending' %}active{% endif %}">
-        Pending ({{ stats.pending }})
+        Pending ({{ duplicate_stats.pending }})
     </a>
     <a href="{{ url_for('duplicates.list_duplicates', status='merged') }}"
        class="filter-btn {% if status_filter == 'merged' %}active{% endif %}">
-        Merged ({{ stats.merged }})
+        Merged ({{ duplicate_stats.merged }})
     </a>
     <a href="{{ url_for('duplicates.list_duplicates', status='dismissed') }}"
        class="filter-btn {% if status_filter == 'dismissed' %}active{% endif %}">
-        Dismissed ({{ stats.dismissed }})
+        Dismissed ({{ duplicate_stats.dismissed }})
     </a>
 </div>
 
