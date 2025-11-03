@@ -59,7 +59,15 @@
 **Current State:**
 - ✅ Embedding-based detection working
 - ✅ Resolution UI implemented
+- ✅ Soft-delete implemented for merge audit trail
 - 🧪 Needs: specification parsing, accuracy validation
+
+**Future Enhancements:**
+- Similar Items section on item detail page
+  - Show items with high similarity scores
+  - Quick actions: View, Mark as Duplicate
+  - Marking as duplicate adds pair to resolution queue
+  - Helps catch duplicates at item creation time
 
 **Priority:** High - currently testing
 
