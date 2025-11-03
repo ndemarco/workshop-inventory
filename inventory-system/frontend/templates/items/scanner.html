@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}QR Code Scanner - Homelab Inventory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📷 QR Code Scanner</h1>
+</div>
+
+<div class="scanner-container">
+    <div class="scanner-info">
+        <p>Point your camera at a QR code to scan it and view the associated item.</p>
+        <p>Make sure the QR code is well-lit and within the camera frame.</p>
+    </div>
+
+    <div id="qr-reader" style="width: 100%; max-width: 600px; margin: 2rem auto;"></div>
+    
+    <div id="scan-result" style="display: none; margin-top: 2rem;">
+        <div class="card">
+            <h3>Scan Result:</h3>
+            <p id="scan-result-text"></p>
+            <div class="form-actions">
+                <a id="view-item-btn" href="#" class="btn btn-primary">View Item</a>
+                <button type="button" class="btn btn-secondary" onclick="location.reload()">Scan Another</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include html5-qrcode library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const qrReaderDiv = document.getElementById('qr-reader');
+    const scanResult = document.getElementById('scan-result');
+    const scanResultText = document.getElementById('scan-result-text');
+    const viewItemBtn = document.getElementById('view-item-btn');
+    
+    let html5QrCode = null;
+    
+    function onScanSuccess(decodedText, decodedResult) {
+        // Handle scanned QR code
+        console.log(`Scanned: ${decodedText}`);
+        
+        // Stop scanning
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                console.log('Scanner stopped');
+            }).catch(err => {
+                console.error('Error stopping scanner:', err);
+            });
+        }
+        
+        // Show result
+        scanResultText.textContent = decodedText;
+        scanResult.style.display = 'block';
+        
+        // Set the view item link
+        viewItemBtn.href = `/items/qr/scan/${encodeURIComponent(decodedText)}`;
+        
+        // Show success banner
+        showBanner(`QR Code detected: ${decodedText}`, 'success');
+        
+        // Auto-redirect after 2 seconds
+        setTimeout(() => {
+            window.location.href = viewItemBtn.href;
+        }, 2000);
+    }
+    
+    function onScanFailure(error) {
+        // Handle scan failure - just log, don't show to user (happens frequently)
+        // console.warn(`QR scan error: ${error}`);
+    }
+    
+    // Initialize scanner
+    html5QrCode = new Html5Qrcode("qr-reader");
+    
+    // Start scanning with back camera
+    Html5Qrcode.getCameras().then(cameras => {
+        if (cameras && cameras.length) {
+            // Try to find back camera, otherwise use first camera
+            let cameraId = cameras[0].id;
+            
+            // Look for back camera
+            for (let camera of cameras) {
+                if (camera.label.toLowerCase().includes('back') || 
+                    camera.label.toLowerCase().includes('rear') ||
+                    camera.label.toLowerCase().includes('environment')) {
+                    cameraId = camera.id;
+                    break;
+                }
+            }
+            
+            html5QrCode.start(
+                cameraId,
+                {
+                    fps: 10,    // Optional, frame per seconds for qr code scanning
+                    qrbox: { width: 250, height: 250 }  // Optional, scanning box dimensions
+                },
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                console.error('Unable to start scanning:', err);
+                showBanner('Unable to access camera. Please check permissions.', 'error');
+            });
+        } else {
+            showBanner('No cameras found on this device.', 'error');
+        }
+    }).catch(err => {
+        console.error('Error getting cameras:', err);
+        showBanner('Unable to access camera. Please check permissions.', 'error');
+    });
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+        if (html5QrCode) {
+            html5QrCode.stop().catch(err => {
+                console.error('Error stopping scanner:', err);
+            });
+        }
+    });
+});
+</script>
+
+<style>
+.scanner-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.scanner-info {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.scanner-info p {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+}
+
+#qr-reader {
+    border: 2px solid var(--primary-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+#scan-result .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+#scan-result h3 {
+    color: var(--success-color);
+    margin-bottom: 1rem;
+}
+
+#scan-result-text {
+    font-family: monospace;
+    font-size: 1.1rem;
+    padding: 1rem;
+    background: var(--bg-color);
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+    word-break: break-all;
+}
+</style>
+{% endblock %}

@@ -155,6 +155,13 @@ class Item(db.Model):
     notes = db.Column(db.Text)
     tags = db.Column(db.String(500))  # Comma-separated tags
     
+    # Quantity tracking
+    quantity = db.Column(db.Integer, default=0)  # Total count/quantity
+    unit = db.Column(db.String(50), default='pieces')  # pieces, kg, liters, meters, etc.
+    
+    # QR code for item identification
+    qr_code = db.Column(db.String(100), unique=True, nullable=True)  # Unique QR identifier
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -174,6 +181,9 @@ class Item(db.Model):
             'item_type': self.item_type,
             'notes': self.notes,
             'tags': self.tags.split(',') if self.tags else [],
+            'quantity': self.quantity,
+            'unit': self.unit,
+            'qr_code': self.qr_code,
             'locations': [il.to_dict() for il in self.item_locations],
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,

@@ -22,6 +22,15 @@
     </form>
 </div>
 
+{% if filtered_location %}
+<div class="banner banner-info" style="margin-bottom: 1rem;">
+    <div class="banner-content">
+        <strong>📍 Filtered by location:</strong> {{ filtered_location.full_address() }}
+    </div>
+    <a href="{{ url_for('items.list_items') }}" class="btn btn-sm btn-secondary" style="margin-left: 1rem;">Clear Filter</a>
+</div>
+{% endif %}
+
 {% if items %}
 <table class="data-table">
     <thead>
@@ -29,6 +38,7 @@
             <th>Name</th>
             <th>Description</th>
             <th>Category</th>
+            <th>Quantity</th>
             <th>Locations</th>
             <th>Actions</th>
         </tr>
@@ -39,10 +49,15 @@
             <td><strong>{{ item.name }}</strong></td>
             <td>{{ item.description[:100] }}{% if item.description|length > 100 %}...{% endif %}</td>
             <td>{{ item.category or '-' }}</td>
+            <td>{{ item.quantity }} {{ item.unit }}</td>
             <td>
                 {% if item.item_locations %}
                     {% for il in item.item_locations %}
-                        <span class="badge">{{ il.location.full_address() }}</span>
+                        <a href="{{ url_for('items.list_items', location_id=il.location_id) }}" 
+                           class="badge badge-link" 
+                           title="Show all items at this location">
+                            {{ il.location.full_address() }}
+                        </a>
                     {% endfor %}
                 {% else %}
                     <span class="text-muted">No location</span>

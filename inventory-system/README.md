@@ -2,9 +2,9 @@
 
 A comprehensive inventory management system for homelab, makerspace, and workshop environments. Track thousands of items across organized storage modules with natural language search and AI-powered capabilities.
 
-## 🚀 Phase 1: Foundation (Current)
+## 🚀 Phase 1-3: Foundation & Intelligence (Current)
 
-This is **Phase 1** of an 8-phase development roadmap. The current release includes:
+This is the **Phase 1-3** implementation of an 8-phase development roadmap. The current release includes:
 
 - ✅ Complete storage hierarchy (Modules → Levels → Locations)
 - ✅ Full CRUD operations for items, modules, levels, and locations
@@ -13,16 +13,77 @@ This is **Phase 1** of an 8-phase development roadmap. The current release inclu
 - ✅ Location visualization (grid view)
 - ✅ Docker deployment ready
 - ✅ PostgreSQL backend with proper relationships
+- ✅ Smart location suggestions (Phase 2)
+- ✅ Duplicate detection (Phase 3)
+- ✅ Automatic specification extraction (Phase 3)
+- ✅ Pattern recognition for fasteners & electronics (Phase 3)
 
 ### Coming in Future Phases
 
-- 🔜 **Phase 2**: Smart location suggestions
-- 🔜 **Phase 3**: Duplicate detection
 - 🔜 **Phase 4**: Semantic search with AI embeddings
 - 🔜 **Phase 5**: CLI interface
 - 🔜 **Phase 6**: Voice interface
 - 🔜 **Phase 7**: Advanced AI features
 - 🔜 **Phase 8**: Production polish & mobile optimization
+
+## ✨ Phase 3: Duplicate Detection Features
+
+The system now includes intelligent duplicate detection to prevent you from adding the same item twice:
+
+### Automatic Duplicate Detection
+- **Real-time checking**: As you type a new item, the system searches for similar existing items
+- **Smart similarity scoring**: Uses multiple factors:
+  - Name similarity (SequenceMatcher algorithm)
+  - Description matching
+  - Category and tag overlap
+  - Specification matching (for technical items)
+- **Visual warnings**: Shows potential duplicates with:
+  - Similarity percentage
+  - Why items are similar
+  - Key differences
+  - Current location and quantity
+
+### Specification Extraction
+- **One-click extraction**: Click "✨ Extract Specs" to auto-parse descriptions
+- **Pattern recognition** for:
+  - **Fasteners**: M6x50, #8 x 3/4", hex head, phillips, pan head, etc.
+  - **Resistors**: 1kΩ, 4.7MΩ, 10Ω with tolerance and wattage
+  - **Capacitors**: 0.1μF, 100nF, 220μF with voltage and type
+  - **IC Packages**: 0805, 1206, SOT-23, SOIC, DIP
+  - **Materials**: stainless steel, brass, aluminum, plastic
+  - **Dimensions**: 100x50x30mm, measurements
+- **Auto-populate**: Automatically fills category and tags based on detected specs
+- **Confidence scoring**: Shows how confident the parser is about the extraction
+
+### Supported Formats
+```
+Fasteners:
+  - M6, M8x50 (metric threads)
+  - #8, #10 x 3/4 (imperial screws)
+  - Pan head, hex head, socket head
+  - Phillips, flathead, hex, torx drives
+
+Electronics:
+  - 1kΩ, 4.7MΩ, 10Ω (resistors)
+  - 0.1μF, 100nF, 10pF (capacitors)
+  - 0805, 1206, SOT-23 (SMD packages)
+
+Measurements:
+  - 10mm, 5.5cm (metric length)
+  - 1/4 inch, 3/4" (imperial)
+  - 100g, 1.5kg (weight)
+  - 100x50x30mm (dimensions)
+```
+
+### How It Works
+1. When creating a new item, fill in name and description
+2. System automatically checks for duplicates (70% similarity threshold)
+3. If found, you'll see a warning with similar items
+4. Review the matches and their locations
+5. Either:
+   - Update the existing item's quantity instead, or
+   - Check "proceed anyway" to create a new item
+6. Use "Extract Specs" to automatically fill tags and category
 
 ## 📋 Prerequisites
 
@@ -372,13 +433,12 @@ After getting comfortable with Phase 1:
 3. Test the search functionality
 4. Provide feedback on what features you need most
 
-## 🐛 Known Limitations (Phase 1)
+## 🐛 Known Limitations
 
 - No AI-powered semantic search yet (coming in Phase 4)
-- No duplicate detection (coming in Phase 3)
-- No location suggestions (coming in Phase 2)
 - No CLI or voice interface (coming in Phases 5-6)
-- Basic keyword search only
+- No automatic item merging (duplicates are detected but not auto-merged)
+- Basic keyword search only (semantic search in Phase 4)
 - No user authentication (single-user system for now)
 
 ## 🤝 Support
@@ -391,9 +451,9 @@ For issues, questions, or feature requests, please open an issue in the project 
 
 ## 🎯 Roadmap
 
-- [x] Phase 1: Foundation (Current)
-- [ ] Phase 2: Smart Location Management
-- [ ] Phase 3: Duplicate Detection
+- [x] Phase 1: Foundation ✅
+- [x] Phase 2: Smart Location Management ✅
+- [x] Phase 3: Duplicate Detection ✅
 - [ ] Phase 4: Semantic Search
 - [ ] Phase 5: CLI Interface
 - [ ] Phase 6: Voice Interface
@@ -402,5 +462,5 @@ For issues, questions, or feature requests, please open an issue in the project 
 
 ---
 
-**Version**: 1.0.0 (Phase 1)  
-**Last Updated**: 2024
+**Version**: 3.0.0 (Phases 1-3 Complete)  
+**Last Updated**: November 2025

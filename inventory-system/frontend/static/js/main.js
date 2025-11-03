@@ -2,13 +2,22 @@
 
 // Auto-hide flash messages after 5 seconds
 document.addEventListener('DOMContentLoaded', function() {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
+    // Auto-hide banners (replacement for alerts)
+    const banners = document.querySelectorAll('.banner');
+    banners.forEach(b => {
         setTimeout(() => {
-            alert.style.opacity = '0';
-            alert.style.transition = 'opacity 0.5s';
-            setTimeout(() => alert.remove(), 500);
+            b.style.opacity = '0';
+            b.style.transition = 'opacity 0.5s';
+            setTimeout(() => b.remove(), 500);
         }, 5000);
+    });
+
+    // Dismiss handlers for banners
+    document.querySelectorAll('.banner-close').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const el = this.closest('.banner');
+            if (el) el.remove();
+        });
     });
 });
 
@@ -75,3 +84,40 @@ function initLocationSelector() {
 document.addEventListener('DOMContentLoaded', function() {
     initLocationSelector();
 });
+
+// Utility to show a banner message programmatically
+function showBanner(message, type = 'info', { timeout = 5000, containerSelector = '#banners' } = {}) {
+    const container = document.querySelector(containerSelector) || (function() {
+        const main = document.querySelector('main.container');
+        const c = document.createElement('div');
+        c.id = 'banners';
+        c.className = 'banners-container';
+        if (main) main.insertBefore(c, main.firstChild);
+        return c;
+    })();
+
+    const banner = document.createElement('div');
+    banner.className = `banner banner-${type}`;
+    const content = document.createElement('div');
+    content.className = 'banner-content';
+    // Preserve newlines as <br>
+    content.innerHTML = String(message).replace(/\n/g, '<br>');
+    const close = document.createElement('button');
+    close.className = 'banner-close';
+    close.setAttribute('aria-label', 'Dismiss');
+    close.innerHTML = '&times;';
+    close.addEventListener('click', () => banner.remove());
+
+    banner.appendChild(content);
+    banner.appendChild(close);
+    container.appendChild(banner);
+
+    if (timeout > 0) {
+        setTimeout(() => {
+            banner.style.opacity = '0';
+            banner.style.transition = 'opacity 0.4s';
+            setTimeout(() => banner.remove(), 400);
+        }, timeout);
+    }
+    return banner;
+}

@@ -10,6 +10,31 @@
     </div>
 </div>
 
+<!-- QR Code Section -->
+<div class="qr-code-section">
+    {% if item.qr_code %}
+    <div class="qr-code-display">
+        <div class="qr-code-info">
+            <span class="qr-badge">✓ QR Code: {{ item.qr_code }}</span>
+            <a href="{{ url_for('items.download_qr_code', item_id=item.id) }}" 
+               class="btn btn-sm btn-primary" 
+               download>
+                📥 Download QR Code
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="qr-code-generate">
+        <form method="POST" action="{{ url_for('items.generate_qr_code', item_id=item.id) }}" style="display: inline;">
+            <button type="submit" class="btn btn-sm btn-secondary">
+                🔲 Generate QR Code
+            </button>
+        </form>
+        <small class="text-muted">Generate a unique QR code for quick item lookup</small>
+    </div>
+    {% endif %}
+</div>
+
 <div class="item-details">
     <div class="detail-section">
         <strong>Description:</strong>
@@ -30,6 +55,11 @@
             <span>{{ item.item_type }}</span>
         </div>
         {% endif %}
+
+        <div class="detail-item">
+            <strong>Quantity:</strong>
+            <span>{{ item.quantity }} {{ item.unit }}</span>
+        </div>
     </div>
 
     {% if item.tags %}
@@ -37,7 +67,7 @@
         <strong>Tags:</strong>
         <div class="tags">
             {% for tag in item.tags.split(',') %}
-            <span class="tag">{{ tag.strip() }}</span>
+            <a href="{{ url_for('items.list_items', search=tag.strip()) }}" class="tag tag-link">{{ tag.strip() }}</a>
             {% endfor %}
         </div>
     </div>
@@ -68,6 +98,13 @@
             <td>
                 <a href="{{ url_for('locations.view_location', location_id=il.location_id) }}">
                     {{ il.location.full_address() }}
+                </a>
+                <span style="margin-left: 0.5rem;">•</span>
+                <a href="{{ url_for('items.list_items', location_id=il.location_id) }}" 
+                   class="btn-link" 
+                   style="font-size: 0.875rem;"
+                   title="Show all items at this location">
+                    View all items here
                 </a>
             </td>
             <td>{{ il.notes or '-' }}</td>

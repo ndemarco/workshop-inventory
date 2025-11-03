@@ -19,11 +19,33 @@
         <small>Natural language description of the item</small>
     </div>
 
+    <!-- Duplicate Detection Warning -->
+    {% if not item %}
+    <div id="duplicate-warning" class="warning-box" style="display: none; margin-bottom: 1.5rem; padding: 1rem; background: #fff3cd; border: 2px solid #ffc107; border-radius: 0.5rem;">
+        <h4 style="margin-top: 0; color: #856404;">
+            ⚠️ Potential Duplicates Found
+        </h4>
+        <p>Similar items already exist in your inventory. Review them before creating a new item:</p>
+        <div id="duplicate-matches"></div>
+        <div style="margin-top: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" id="proceed-anyway" style="width: auto;">
+                <span>I've reviewed these items and want to create a new one anyway</span>
+            </label>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="form-row">
         <div class="form-group">
             <label for="category">Category</label>
-            <input type="text" id="category" name="category" value="{{ item.category if item else '' }}" list="categories">
+            <input type="text" id="category" name="category" value="{{ item.category if item else '' }}" list="categories" placeholder="Select or type new category">
             <datalist id="categories">
+                {% if existing_categories %}
+                    {% for cat in existing_categories %}
+                    <option value="{{ cat }}">
+                    {% endfor %}
+                {% endif %}
                 <option value="Electronics">
                 <option value="Fasteners">
                 <option value="Tools">
@@ -31,18 +53,25 @@
                 <option value="Hardware">
                 <option value="Materials">
             </datalist>
+            <small>Select from list or type to create new</small>
         </div>
 
         <div class="form-group">
             <label for="item_type">Item Type</label>
-            <input type="text" id="item_type" name="item_type" value="{{ item.item_type if item else '' }}" list="item_types">
+            <input type="text" id="item_type" name="item_type" value="{{ item.item_type if item else '' }}" list="item_types" placeholder="Select or type new type">
             <datalist id="item_types">
+                {% if existing_item_types %}
+                    {% for type in existing_item_types %}
+                    <option value="{{ type }}">
+                    {% endfor %}
+                {% endif %}
                 <option value="solid">
                 <option value="liquid">
                 <option value="smd_component">
                 <option value="bulk">
                 <option value="tool">
             </datalist>
+            <small>Select from list or type to create new</small>
         </div>
     </div>
 
@@ -50,6 +79,37 @@
         <label for="tags">Tags</label>
         <input type="text" id="tags" name="tags" value="{{ item.tags if item else '' }}" placeholder="metric, stainless, m6, bolt">
         <small>Comma-separated tags</small>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <input type="number" id="quantity" name="quantity" value="{{ item.quantity if item else 0 }}" min="0" step="1">
+            <small>Total count/amount</small>
+        </div>
+
+        <div class="form-group">
+            <label for="unit">Unit</label>
+            <input type="text" id="unit" name="unit" value="{{ item.unit if item else 'pieces' }}" list="units" placeholder="Select or type new unit">
+            <datalist id="units">
+                {% if existing_units %}
+                    {% for unit in existing_units %}
+                    <option value="{{ unit }}">
+                    {% endfor %}
+                {% endif %}
+                <option value="pieces">
+                <option value="kg">
+                <option value="g">
+                <option value="liters">
+                <option value="ml">
+                <option value="meters">
+                <option value="cm">
+                <option value="boxes">
+                <option value="sets">
+                <option value="rolls">
+            </datalist>
+            <small>Select from list or type to create new</small>
+        </div>
     </div>
 
     <div class="form-group">
@@ -112,6 +172,205 @@ document.addEventListener('DOMContentLoaded', function() {
     const locationSelect = document.getElementById('location_select');
     const addLocationBtn = document.getElementById('add-location-btn');
     
+    // Duplicate detection (only on new item form)
+    const duplicateWarning = document.getElementById('duplicate-warning');
+    const duplicateMatches = document.getElementById('duplicate-matches');
+    const proceedCheckbox = document.getElementById('proceed-anyway');
+    const form = document.querySelector('form');
+    const nameInput = document.getElementById('name');
+    const descriptionInput = document.getElementById('description');
+    const categoryInput = document.getElementById('category');
+    const tagsInput = document.getElementById('tags');
+    
+    let duplicateCheckTimeout = null;
+    let hasDuplicates = false;
+    
+    // Check for duplicates when user types
+    if (duplicateWarning && !{{ 'true' if item else 'false' }}) {
+        const checkDuplicates = async function() {
+            const name = nameInput.value.trim();
+            const description = descriptionInput.value.trim();
+            const category = categoryInput.value.trim();
+            const tags = tagsInput.value.trim();
+            
+            if (!name || !description) {
+                duplicateWarning.style.display = 'none';
+                hasDuplicates = false;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/items/api/check-duplicates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: description,
+                        category: category,
+                        tags: tags,
+                        threshold: 0.70
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to check duplicates');
+                }
+                
+                const result = await response.json();
+                
+                if (result.has_duplicates && result.matches.length > 0) {
+                    hasDuplicates = true;
+                    displayDuplicates(result.matches);
+                    duplicateWarning.style.display = 'block';
+                    proceedCheckbox.checked = false;
+                } else {
+                    hasDuplicates = false;
+                    duplicateWarning.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error checking duplicates:', error);
+            }
+        };
+        
+        const debouncedCheck = function() {
+            clearTimeout(duplicateCheckTimeout);
+            duplicateCheckTimeout = setTimeout(checkDuplicates, 800);
+        };
+        
+        nameInput.addEventListener('input', debouncedCheck);
+        descriptionInput.addEventListener('input', debouncedCheck);
+        categoryInput.addEventListener('input', debouncedCheck);
+        tagsInput.addEventListener('input', debouncedCheck);
+        
+        // Prevent form submission if duplicates found and not acknowledged
+        form.addEventListener('submit', function(e) {
+            if (hasDuplicates && !proceedCheckbox.checked) {
+                e.preventDefault();
+                showBanner('Please review the similar items and check the box if you want to proceed.', 'warning');
+                duplicateWarning.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+        });
+    }
+    
+    function displayDuplicates(matches) {
+        let html = '<div class="duplicate-list">';
+        matches.forEach((match, index) => {
+            const percent = Math.round(match.similarity_score * 100);
+            const locations = match.locations.map(loc => 
+                `${loc.module}:${loc.level}:${loc.location}`
+            ).join(', ') || 'No location';
+            
+            html += `
+                <div class="duplicate-item" style="margin-bottom: 1rem; padding: 0.75rem; background: white; border: 1px solid #dee2e6; border-radius: 0.375rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <a href="/items/${match.item_id}" target="_blank" style="font-weight: bold; color: var(--primary-color); font-size: 1.05rem;">
+                            ${match.item_name}
+                        </a>
+                        <span style="background: #ffc107; color: #856404; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; font-weight: bold;">
+                            ${percent}% match
+                        </span>
+                    </div>
+                    <p style="margin: 0.5rem 0; font-size: 0.875rem; color: #666;">
+                        ${match.item_description}
+                    </p>
+                    <div style="font-size: 0.875rem; margin-top: 0.5rem;">
+                        <strong>📍 Location:</strong> ${locations}<br>
+                        <strong>📦 Quantity:</strong> ${match.quantity} ${match.unit}
+                    </div>
+                    ${match.match_reasons.length > 0 ? `
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e7f3ff; border-radius: 0.25rem; font-size: 0.875rem;">
+                            <strong>Why similar:</strong> ${match.match_reasons.join('; ')}
+                        </div>
+                    ` : ''}
+                    ${match.differences.length > 0 ? `
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f8f9fa; border-radius: 0.25rem; font-size: 0.875rem;">
+                            <strong>Differences:</strong> ${match.differences.join('; ')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+        html += '</div>';
+        duplicateMatches.innerHTML = html;
+    }
+    
+    // Auto-extract specifications and populate tags
+    const extractSpecsBtn = document.createElement('button');
+    extractSpecsBtn.type = 'button';
+    extractSpecsBtn.className = 'btn btn-secondary';
+    extractSpecsBtn.textContent = '✨ Extract Specs';
+    extractSpecsBtn.title = 'Automatically extract specifications from description';
+    extractSpecsBtn.style.marginTop = '0.5rem';
+    
+    if (descriptionInput && !{{ 'true' if item else 'false' }}) {
+        descriptionInput.parentElement.appendChild(extractSpecsBtn);
+        
+        extractSpecsBtn.addEventListener('click', async function() {
+            const name = nameInput.value.trim();
+            const description = descriptionInput.value.trim();
+            
+            if (!description) {
+                showBanner('Please enter a description first.', 'warning');
+                return;
+            }
+            
+            extractSpecsBtn.disabled = true;
+            extractSpecsBtn.textContent = '⏳ Extracting...';
+            
+            try {
+                const response = await fetch('/items/api/extract-specs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: description
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to extract specs');
+                }
+                
+                const result = await response.json();
+                
+                // Auto-fill category if detected
+                if (result.category && !categoryInput.value) {
+                    categoryInput.value = result.category;
+                }
+                
+                // Add extracted tags to tags field
+                if (result.tags && result.tags.length > 0) {
+                    const currentTags = tagsInput.value.trim();
+                    const newTags = result.tags.join(', ');
+                    if (currentTags) {
+                        tagsInput.value = currentTags + ', ' + newTags;
+                    } else {
+                        tagsInput.value = newTags;
+                    }
+                }
+                
+                // Show a success message
+                if (result.confidence > 0.5) {
+                    const confidence = Math.round(result.confidence * 100);
+                    showBanner(`✅ Extracted specs with ${confidence}% confidence!\n\nCategory: ${result.category || 'none'}\nTags: ${result.tags.join(', ') || 'none'}`, 'success');
+                } else {
+                    showBanner('⚠️ Could not extract specific specs. This might be a general item.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error extracting specs:', error);
+                showBanner('Error extracting specifications. Please try again.', 'error');
+            } finally {
+                extractSpecsBtn.disabled = false;
+                extractSpecsBtn.textContent = '✨ Extract Specs';
+            }
+        });
+    }
+    
     // Show/hide the "Add Location" button when selection changes (for edit form)
     if (locationSelect && addLocationBtn) {
         locationSelect.addEventListener('change', function() {
@@ -126,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addLocationBtn.addEventListener('click', function() {
             const locationId = locationSelect.value;
             if (!locationId) {
-                alert('Please select a location first.');
+                showBanner('Please select a location first.', 'warning');
                 return;
             }
             
@@ -147,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const tags = document.getElementById('tags').value;
             
             if (!category && !itemType && !tags) {
-                alert('Please fill in at least one of: Category, Item Type, or Tags to get suggestions.');
+                showBanner('Please fill in at least one of: Category, Item Type, or Tags to get suggestions.', 'warning');
                 return;
             }
             
@@ -302,6 +561,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .select-location-btn {
     width: 100%;
+}
+
+.warning-box {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.duplicate-item a:hover {
+    text-decoration: underline;
 }
 </style>
 {% endblock %}

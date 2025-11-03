@@ -19,6 +19,7 @@
                 <li><a href="{{ url_for('modules.list_modules') }}">Modules</a></li>
                 <li><a href="{{ url_for('locations.list_locations') }}">Locations</a></li>
                 <li><a href="{{ url_for('search.search') }}">Search</a></li>
+                <li><a href="{{ url_for('items.qr_scanner') }}">📷 QR Scanner</a></li>
             </ul>
         </div>
     </nav>
@@ -26,11 +27,11 @@
     <main class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="flash-messages">
+                <div id="banners" class="banners-container">
                     {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">
-                            {{ message }}
-                            <button class="alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                        <div class="banner banner-{{ category }}">
+                            <div class="banner-content">{{ message }}</div>
+                            <button class="banner-close" aria-label="Dismiss">&times;</button>
                         </div>
                     {% endfor %}
                 </div>
@@ -42,7 +43,7 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Homelab Inventory System | Phase 1: Foundation</p>
+            <p>&copy; 2025 Homelab Inventory System | v3.0.0 - Phases 1-3 Complete</p>
         </div>
     </footer>
 
