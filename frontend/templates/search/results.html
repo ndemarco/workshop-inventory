@@ -14,12 +14,15 @@
     </form>
 </div>
 
-{% if query %}
 <div class="search-results">
+    {% if query %}
     <h2>Results for "{{ query }}"</h2>
-    
+    {% else %}
+    <h2>All Items</h2>
+    {% endif %}
+
     {% if results %}
-    <p class="result-count">Found {{ results|length }} item(s)</p>
+    <p class="result-count">{{ results|length }} item(s)</p>
     
     <table class="data-table">
         <thead>
@@ -55,10 +58,13 @@
     </table>
     {% else %}
     <div class="empty-state">
+        {% if query %}
         <p>No items found matching "{{ query }}"</p>
+        {% else %}
+        <p>No items in inventory yet. Click "+ Item" to add your first item!</p>
+        {% endif %}
     </div>
     {% endif %}
 </div>
-{% endif %}
 
 {% endblock %}

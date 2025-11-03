@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from app.models import Module, Level, Location, Item
+from app.models import Module, Level, Location, Item, DuplicateCandidate
 
 bp = Blueprint('main', __name__)
 
@@ -19,6 +19,9 @@ def index():
     # Calculate occupancy percentage
     occupancy_percent = (occupied_locations / total_locations * 100) if total_locations > 0 else 0
 
+    # Check for pending duplicates
+    pending_duplicates = DuplicateCandidate.query.filter_by(status='pending').count()
+
     stats = {
         'total_items': total_items,
         'total_locations': total_locations,
@@ -26,7 +29,7 @@ def index():
         'occupancy_percent': round(occupancy_percent, 1),
     }
 
-    return render_template('index.html', stats=stats)
+    return render_template('index.html', stats=stats, pending_duplicates=pending_duplicates)
 
 
 @bp.route('/about')

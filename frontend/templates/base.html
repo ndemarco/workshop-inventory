@@ -15,14 +15,9 @@
                     <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="WhereTF?" class="logo">
                 </a>
             </div>
-            <ul class="nav-menu">
-                <li><a href="{{ url_for('main.index') }}">Dashboard</a></li>
-                <li><a href="{{ url_for('modules.list_modules') }}">Modules</a></li>
-                <li><a href="{{ url_for('locations.list_locations') }}">Locations</a></li>
-                <li><a href="{{ url_for('search.search') }}">🔍 Search</a></li>
-                <li><a href="{{ url_for('duplicates.list_duplicates') }}">🔄 Duplicates</a></li>
-                <li><a href="{{ url_for('admin.index') }}">⚙️ Admin</a></li>
-            </ul>
+            <div class="nav-actions">
+                <a href="{{ url_for('items.new_item') }}" class="btn btn-primary btn-add-item">+ Item</a>
+            </div>
         </div>
     </nav>
 
@@ -45,14 +40,20 @@
 
     <footer class="footer">
         <div class="container">
+            <div class="footer-nav">
+                <a href="{{ url_for('modules.list_modules') }}" class="footer-nav-btn">📦 Modules</a>
+                <a href="{{ url_for('locations.list_locations') }}" class="footer-nav-btn">📍 Locations</a>
+                <a href="{{ url_for('duplicates.list_duplicates') }}" class="footer-nav-btn">🔄 Duplicates</a>
+                <a href="{{ url_for('admin.index') }}" class="footer-nav-btn">⚙️ Admin</a>
+            </div>
             {% if stats %}
             <div class="footer-stats">
                 <span class="footer-stat">
-                    <strong>{{ stats.total_items }}</strong> items
+                    <a href="{{ url_for('search.search') }}" class="footer-stat-link"><strong>{{ stats.total_items }}</strong> items</a>
                 </span>
                 <span class="footer-stat-separator">•</span>
                 <span class="footer-stat">
-                    <strong>{{ stats.occupied_locations }}/{{ stats.total_locations }}</strong> locations used
+                    <a href="{{ url_for('locations.list_locations') }}" class="footer-stat-link"><strong>{{ stats.occupied_locations }}/{{ stats.total_locations }}</strong> locations</a> used
                 </span>
                 <span class="footer-stat-separator">•</span>
                 <span class="footer-stat">

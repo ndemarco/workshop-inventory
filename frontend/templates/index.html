@@ -16,10 +16,16 @@
                 <button type="button" onclick="submitSemanticSearch()" class="btn btn-secondary">AI Search</button>
             </div>
         </form>
-    </div>
-
-    <div class="home-action-container">
-        <a href="{{ url_for('items.new_item') }}" class="btn btn-primary btn-large">+ New Item</a>
+        {% if pending_duplicates and pending_duplicates > 0 %}
+        <div class="duplicates-alert">
+            <a href="{{ url_for('duplicates.list_duplicates') }}" class="btn btn-warning btn-duplicates">
+                🔄 Resolve {{ pending_duplicates }} Duplicate{{ 's' if pending_duplicates != 1 else '' }}
+            </a>
+        </div>
+        {% endif %}
+        <div class="home-action-container">
+            <a href="{{ url_for('search.search') }}" class="btn btn-secondary btn-large">📋 Browse Items</a>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -81,12 +87,49 @@
 }
 
 .home-action-container {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
+    text-align: center;
 }
 
-.btn-large {
-    padding: 0.75rem 2rem;
-    font-size: 1.125rem;
+.home-action-container .btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.home-action-container .btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.duplicates-alert {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.btn-duplicates {
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);
+    }
 }
 
 /* Footer stats override for home page */
