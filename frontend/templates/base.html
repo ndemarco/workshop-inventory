@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}WhereTF?{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{{ url_for('main.index') }}">
+                    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="WhereTF?" class="logo">
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('main.index') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('modules.list_modules') }}">Modules</a></li>
+                <li><a href="{{ url_for('locations.list_locations') }}">Locations</a></li>
+                <li><a href="{{ url_for('search.search') }}">🔍 Search</a></li>
+                <li><a href="{{ url_for('duplicates.list_duplicates') }}">🔄 Duplicates</a></li>
+                <li><a href="{{ url_for('admin.index') }}">⚙️ Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                            <button class="alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            {% if stats %}
+            <div class="footer-stats">
+                <span class="footer-stat">
+                    <strong>{{ stats.total_items }}</strong> items
+                </span>
+                <span class="footer-stat-separator">•</span>
+                <span class="footer-stat">
+                    <strong>{{ stats.occupied_locations }}/{{ stats.total_locations }}</strong> locations used
+                </span>
+                <span class="footer-stat-separator">•</span>
+                <span class="footer-stat">
+                    <strong>{{ stats.occupancy_percent }}%</strong> occupied
+                </span>
+            </div>
+            {% endif %}
+            <p>&copy; 2024 WhereTF? | Bin there, found that.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

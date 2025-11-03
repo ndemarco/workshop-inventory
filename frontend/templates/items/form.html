@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{% if item %}Edit{% else %}New{% endif %} Item - WhereTF?{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% if item %}Edit Item{% else %}New Item{% endif %}</h1>
+</div>
+
+<form method="POST" class="form" id="itemForm">
+    {% if not item %}
+    {# NEW ITEM: Raw input + Generate button #}
+    <div class="form-group">
+        <label for="raw_input_field">Describe the item *</label>
+        <textarea id="raw_input_field" rows="4" autofocus placeholder="e.g., 10k ohm resistor quarter watt, or M6 stainless steel bolt, or small phillips screwdriver..."></textarea>
+        <small>Describe what you're adding in your own words</small>
+    </div>
+
+    <div class="form-group">
+        <button type="button" id="generateBtn" class="btn btn-secondary">🤖 Generate Description</button>
+        <span id="generateStatus"></span>
+    </div>
+
+    {# Hidden fields that will be populated by AI #}
+    <input type="hidden" id="raw_input" name="raw_input">
+    <input type="hidden" id="name" name="name">
+    <input type="hidden" id="description" name="description">
+
+    {# Preview section (hidden until generated) #}
+    <div id="generatedPreview" style="display: none;">
+        <h3>Generated Details</h3>
+        <div class="form-group">
+            <label>Name</label>
+            <div class="read-only-field" id="preview_name"></div>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <div class="read-only-field" id="preview_description"></div>
+        </div>
+    </div>
+
+    {% else %}
+    {# EDIT ITEM: Show generated fields #}
+    <div class="form-group">
+        <label for="name">Name *</label>
+        <input type="text" id="name" name="name" value="{{ item.name }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description *</label>
+        <textarea id="description" name="description" rows="4" required>{{ item.description }}</textarea>
+        <small>Detailed description</small>
+    </div>
+
+    {% if item.raw_input %}
+    <div class="form-group">
+        <label>Original Input</label>
+        <div class="read-only-field">{{ item.raw_input }}</div>
+        <small>Your original description (for reference)</small>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="category">Category</label>
+            <input type="text" id="category" name="category" value="{{ item.category if item else '' }}" list="categories">
+            <datalist id="categories">
+                <option value="Electronics">
+                <option value="Fasteners">
+                <option value="Tools">
+                <option value="Paints & Coatings">
+                <option value="Hardware">
+                <option value="Materials">
+            </datalist>
+        </div>
+
+        <div class="form-group">
+            <label for="item_type">Item Type</label>
+            <input type="text" id="item_type" name="item_type" value="{{ item.item_type if item else '' }}" list="item_types">
+            <datalist id="item_types">
+                <option value="solid">
+                <option value="liquid">
+                <option value="smd_component">
+                <option value="bulk">
+                <option value="tool">
+            </datalist>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="tags">Tags</label>
+        <input type="text" id="tags" name="tags" value="{{ item.tags if item else '' }}" placeholder="metric, stainless, m6, bolt">
+        <small>Comma-separated tags</small>
+    </div>
+
+    <div class="form-group">
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes" rows="3">{{ item.notes if item else '' }}</textarea>
+    </div>
+
+    {% if not item %}
+    <h3>Initial Location</h3>
+    <div class="form-group">
+        <label for="location_select">Location</label>
+        <select id="location_select" name="location_id">
+            <option value="">Select later...</option>
+            {% for module in modules %}
+                <optgroup label="{{ module.name }}">
+                {% for level in module.levels %}
+                    {% for location in level.locations %}
+                        <option value="{{ location.id }}">{{ location.full_address() }}</option>
+                    {% endfor %}
+                {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{% if item %}Update{% else %}Create{% endif %} Item</button>
+        <a href="{% if item %}{{ url_for('items.view_item', item_id=item.id) }}{% else %}{{ url_for('items.list_items') }}{% endif %}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+{% if item %}
+<div class="danger-zone">
+    <h3>Danger Zone</h3>
+    <form method="POST" action="{{ url_for('items.delete_item', item_id=item.id) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
+        <button type="submit" class="btn btn-danger">Delete Item</button>
+    </form>
+</div>
+{% endif %}
+
+<style>
+.read-only-field {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: inherit;
+    color: #666;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#generateStatus {
+    margin-left: 10px;
+    font-style: italic;
+    color: #666;
+}
+
+#generatedPreview {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f9f9f9;
+    border: 2px solid #4caf50;
+    border-radius: 8px;
+}
+
+#generatedPreview h3 {
+    margin-top: 0;
+    color: #4caf50;
+}
+</style>
+
+<script>
+{% if not item %}
+document.addEventListener('DOMContentLoaded', function() {
+    const generateBtn = document.getElementById('generateBtn');
+    const rawInputField = document.getElementById('raw_input_field');
+    const generateStatus = document.getElementById('generateStatus');
+    const generatedPreview = document.getElementById('generatedPreview');
+    const form = document.getElementById('itemForm');
+
+    generateBtn.addEventListener('click', async function() {
+        const rawInput = rawInputField.value.trim();
+
+        if (!rawInput) {
+            alert('Please describe the item first');
+            return;
+        }
+
+        // Disable button and show loading
+        generateBtn.disabled = true;
+        generateStatus.textContent = 'Generating...';
+
+        try {
+            const response = await fetch('/items/generate-description', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ raw_input: rawInput })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Populate hidden form fields
+            document.getElementById('raw_input').value = rawInput;
+            document.getElementById('name').value = data.name;
+            document.getElementById('description').value = data.description;
+
+            // Show preview
+            document.getElementById('preview_name').textContent = data.name;
+            document.getElementById('preview_description').textContent = data.description;
+            generatedPreview.style.display = 'block';
+
+            generateStatus.textContent = '✓ Generated!';
+            generateStatus.style.color = '#4caf50';
+            generateBtn.disabled = false;
+
+        } catch (error) {
+            console.error('Generation error:', error);
+            generateStatus.textContent = '✗ Error: ' + error.message;
+            generateStatus.style.color = '#f44336';
+            generateBtn.disabled = false;
+        }
+    });
+
+    // Validate form on submit
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('name').value;
+        const description = document.getElementById('description').value;
+
+        if (!name || !description) {
+            e.preventDefault();
+            alert('Please generate the description first by clicking the "Generate Description" button');
+            return false;
+        }
+    });
+});
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}WhereTF?{% endblock %}
+
+{% block content %}
+<div class="home-page">
+    <div class="home-logo-container">
+        <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="WhereTF?" class="home-logo">
+    </div>
+
+    <div class="home-search-container">
+        <form id="omnibox-search" action="{{ url_for('search.search') }}" method="GET" class="home-search-form">
+            <input type="text" name="q" class="home-search-input" placeholder="Search for items..." autofocus>
+            <div class="home-search-buttons">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <button type="button" onclick="submitSemanticSearch()" class="btn btn-secondary">AI Search</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="home-action-container">
+        <a href="{{ url_for('items.new_item') }}" class="btn btn-primary btn-large">+ New Item</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.home-page {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.home-logo-container {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.home-logo {
+    max-width: 400px;
+    width: 100%;
+    height: auto;
+}
+
+.home-search-container {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 2rem;
+}
+
+.home-search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.home-search-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    font-size: 1.125rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.home-search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.home-search-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.home-action-container {
+    margin-top: 1rem;
+}
+
+.btn-large {
+    padding: 0.75rem 2rem;
+    font-size: 1.125rem;
+}
+
+/* Footer stats override for home page */
+.footer {
+    margin-top: auto;
+}
+
+@media (max-width: 768px) {
+    .home-logo {
+        max-width: 300px;
+    }
+
+    .home-search-input {
+        font-size: 1rem;
+        padding: 0.875rem 1.25rem;
+    }
+
+    .home-search-buttons {
+        flex-direction: column;
+    }
+
+    .home-search-buttons .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function submitSemanticSearch() {
+    const form = document.getElementById('omnibox-search');
+    form.action = "{{ url_for('search.semantic_search') }}";
+    form.submit();
+}
+</script>
+{% endblock %}

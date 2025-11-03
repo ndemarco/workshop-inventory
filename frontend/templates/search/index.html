@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Search - WhereTF?{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🔍 Search Inventory</h1>
+</div>
+
+<div class="search-omnibox">
+    <form id="search-omnibox-form" method="GET" action="{{ url_for('search.search') }}">
+        <input type="text" name="q" value="{{ query or '' }}" class="search-omnibox-input" placeholder="Search for items..." autofocus>
+        <div class="search-omnibox-buttons">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <button type="button" onclick="submitSemanticSearch()" class="btn btn-secondary">AI Search</button>
+        </div>
+    </form>
+    {% if search_type == 'semantic' %}
+    <p class="search-help-text">
+        💡 AI Search understands meaning - try: "resistors for LEDs", "small screws for wood", "capacitors around 100uF"
+    </p>
+    {% endif %}
+</div>
+
+{% if message %}
+<div class="alert {% if 'Error' in message or 'error' in message %}alert-error{% else %}alert-info{% endif %}">
+    {{ message }}
+</div>
+{% endif %}
+
+{% if query %}
+<div class="search-results">
+    <div class="results-header">
+        <h2>Results for "{{ query }}"</h2>
+        {% if search_type == 'semantic' %}
+        <span class="badge badge-ai">🤖 AI Search</span>
+        {% else %}
+        <span class="badge badge-basic">🔍 Basic Search</span>
+        {% endif %}
+    </div>
+
+    {% if results %}
+    <p class="result-count">Found {{ results|length }} item(s)</p>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                {% if search_type == 'semantic' %}
+                <th style="width: 70px;">Match</th>
+                {% endif %}
+                <th>Name</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Locations</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+            <tr>
+                {% if search_type == 'semantic' %}
+                <td>
+                    <span class="similarity-badge" style="background: hsl({{ result.similarity }}, 70%, 50%)">
+                        {{ result.similarity }}%
+                    </span>
+                </td>
+                {% endif %}
+                <td><strong>{{ result.item.name if search_type == 'semantic' else result.name }}</strong></td>
+                <td>
+                    {% set description = result.item.description if search_type == 'semantic' else result.description %}
+                    {{ description[:100] }}{% if description|length > 100 %}...{% endif %}
+                </td>
+                <td>{{ result.item.category if search_type == 'semantic' else result.category or '-' }}</td>
+                <td>
+                    {% set item_locations = result.item.item_locations if search_type == 'semantic' else result.item_locations %}
+                    {% if item_locations %}
+                        {% for il in item_locations %}
+                            <span class="badge">{{ il.location.full_address() }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted">No location</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('items.view_item', item_id=(result.item.id if search_type == 'semantic' else result.id)) }}" class="btn-link">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>No items found matching "{{ query }}"</p>
+        {% if search_type != 'semantic' %}
+        <p class="empty-state-hint">💡 Try using <button type="button" onclick="submitSemanticSearch()" class="btn-link">AI Search</button> for meaning-based results</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-omnibox {
+    max-width: 700px;
+    margin: 2rem auto;
+}
+
+.search-omnibox-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1.125rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s, border-color 0.2s;
+    margin-bottom: 1rem;
+}
+
+.search-omnibox-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.search-omnibox-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.search-help-text {
+    margin-top: 1rem;
+    font-size: 0.9em;
+    color: #666;
+    text-align: center;
+}
+
+.results-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.results-header h2 {
+    margin: 0;
+}
+
+.badge-ai {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-basic {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.similarity-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.85em;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+}
+
+.empty-state-hint {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .search-omnibox-buttons {
+        flex-direction: column;
+    }
+
+    .search-omnibox-buttons .btn {
+        width: 100%;
+    }
+
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function submitSemanticSearch() {
+    const form = document.getElementById('search-omnibox-form');
+    const query = form.querySelector('input[name="q"]').value;
+    if (!query.trim()) {
+        alert('Please enter a search query');
+        return;
+    }
+    form.action = "{{ url_for('search.semantic_search') }}";
+    form.submit();
+}
+</script>
+{% endblock %}

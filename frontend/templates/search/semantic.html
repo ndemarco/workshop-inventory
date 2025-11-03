@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Semantic Search - WhereTF?{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🤖 Semantic Search</h1>
+    <p class="subtitle">AI-powered search that understands meaning, not just keywords</p>
+</div>
+
+<div class="search-form">
+    <form method="GET" action="{{ url_for('search.semantic_search') }}">
+        <input type="text" name="q" value="{{ query }}" placeholder="Describe what you're looking for..." autofocus>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    <p class="help-text">
+        💡 Try natural language: "resistors for LEDs", "small screws for wood", "capacitors around 100uF"
+    </p>
+</div>
+
+{% if message %}
+<div class="{% if 'Error' in message %}alert-error{% else %}alert-info{% endif %}">
+    {{ message }}
+</div>
+{% endif %}
+
+{% if query and results %}
+<div class="search-results">
+    <h2>Results for "{{ query }}"</h2>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 60px;">Match</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Locations</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+            <tr>
+                <td>
+                    <span class="similarity-badge" style="background: hsl({{ result.similarity }}, 70%, 50%)">
+                        {{ result.similarity }}%
+                    </span>
+                </td>
+                <td><strong>{{ result.item.name }}</strong></td>
+                <td>{{ result.item.description[:100] }}{% if result.item.description|length > 100 %}...{% endif %}</td>
+                <td>{{ result.item.category or '-' }}</td>
+                <td>
+                    {% if result.item.item_locations %}
+                        {% for il in result.item.item_locations %}
+                            <span class="badge">{{ il.location.full_address() }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted">No location</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('items.view_item', item_id=result.item.id) }}" class="btn-link">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<style>
+.subtitle {
+    color: #666;
+    font-size: 0.9em;
+    margin-top: -10px;
+}
+
+.help-text {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.similarity-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.85em;
+}
+
+.alert-info {
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    color: #1976d2;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert-error {
+    background: #ffebee;
+    border: 1px solid #f44336;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+</style>
+
+{% endblock %}
