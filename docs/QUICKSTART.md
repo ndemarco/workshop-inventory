@@ -29,6 +29,20 @@ docker-compose logs -f backend
 
 ---
 
+## What You Get (v1.5)
+
+**Core Features:**
+- Hierarchical storage (Modules → Levels → Locations)
+- AI-powered description generation from short inputs
+- Dual search modes: keyword and semantic (natural language)
+- Automatic duplicate detection with merge workflow
+- Search-first UI with omnibox interface
+- Admin panel for embeddings and system operations
+
+**Current Status:** Foundation complete, AI features in testing
+
+---
+
 ## First-Time Setup
 
 ### 1. Create a Module
@@ -118,11 +132,13 @@ Admin → "Detect Duplicates" → Finds similar items
 
 ---
 
-## Managing the System
+## Essential Commands
 
-### Start/Stop
 ```bash
-# Stop (keeps data)
+# Start system
+docker-compose up -d
+
+# Stop system (keeps data)
 docker-compose stop
 
 # Start again
@@ -131,24 +147,21 @@ docker-compose start
 # Restart service
 docker-compose restart backend
 
+# View logs
+docker-compose logs -f backend
+
 # Shutdown (keeps data)
 docker-compose down
 
 # Reset everything (deletes data!)
 docker-compose down -v
-```
 
-### Backup
-```bash
-# Database backup
+# Backup database
 docker exec inventory-db pg_dump -U inventoryuser inventory > backup_$(date +%Y%m%d).sql
 
 # Full backup
 tar -czf wheretf-backup-$(date +%Y%m%d).tar.gz data/
-```
 
-### Restore
-```bash
 # Restore database
 docker exec -i inventory-db psql -U inventoryuser inventory < backup.sql
 ```
@@ -221,17 +234,31 @@ http://192.168.1.100:8080
 
 ---
 
-## Security Checklist
+## Security Note
 
-**For local/development use:** Default settings are fine
+**Default settings are for local/development use.**
 
-**For production deployment:**
+For production deployment:
 - [ ] Change database password in `docker-compose.yml`
 - [ ] Set unique `SECRET_KEY` environment variable
 - [ ] Configure firewall rules
 - [ ] Enable HTTPS with reverse proxy
 - [ ] Set up automated backups
 - [ ] Don't expose port 5432 (PostgreSQL)
+
+---
+
+## Documentation
+
+**Daily Use:**
+- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Commands and workflows
+
+**Planning:**
+- [ROADMAP.md](ROADMAP.md) - Development phases and priorities
+- [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) - Detailed system overview
+
+**Architecture:**
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Technical implementation details
 
 ---
 
@@ -244,8 +271,8 @@ http://192.168.1.100:8080
 4. Explore the admin panel
 
 **Short-term:**
-- Read [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for workflows
-- Check [ROADMAP.md](ROADMAP.md) for upcoming features
+- Read QUICK_REFERENCE.md for daily workflows
+- Check ROADMAP.md for upcoming features
 
 **Long-term:**
 - Organize your full inventory
@@ -254,4 +281,6 @@ http://192.168.1.100:8080
 
 ---
 
-**System deployed! Start organizing at http://localhost:8080 🚀**
+**Current Version:** v1.5 (Foundation + AI Features - Testing)
+
+**System deployed! Start organizing at http://localhost:8080**
