@@ -522,6 +522,13 @@ body {
     margin-top: 0.25rem;
 }
 
+.location-item-name {
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
 .location-empty {
     font-size: 0.75rem;
     color: var(--text-muted);
@@ -602,6 +609,18 @@ body {
     background-color: var(--bg-color);
     color: var(--text-secondary);
     margin-right: 0.25rem;
+}
+
+.badge-link {
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.badge-link:hover {
+    background-color: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
 }
 
 .badge-occupied {

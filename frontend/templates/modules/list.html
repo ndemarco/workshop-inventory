@@ -33,9 +33,9 @@
         {% endif %}
         
         <div class="module-stats">
-            <span class="badge">{{ module.levels|length }} levels</span>
+            <a href="{{ url_for('modules.view_module', module_id=module.id) }}" class="badge badge-link">{{ module.levels|length }} levels</a>
             {% set total_locations = module.levels|map(attribute='locations')|map('length')|sum %}
-            <span class="badge">{{ total_locations }} locations</span>
+            <a href="{{ url_for('modules.view_module', module_id=module.id) }}" class="badge badge-link">{{ total_locations }} locations</a>
         </div>
     </div>
     {% endfor %}

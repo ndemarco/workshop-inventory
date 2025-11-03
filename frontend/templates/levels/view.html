@@ -53,9 +53,11 @@
                     <a href="{{ url_for('locations.view_location', location_id=location.id) }}" class="location-link">
                         <div class="location-address">{{ row[0] }}{{ col }}</div>
                         {% if location.item_locations %}
-                        <div class="location-items">{{ location.item_locations|length }} item(s)</div>
-                        {% else %}
-                        <div class="location-empty">Empty</div>
+                            {% if location.item_locations|length == 1 %}
+                            <div class="location-item-name">{{ location.item_locations[0].item.name }}</div>
+                            {% else %}
+                            <div class="location-items">{{ location.item_locations|length }} items</div>
+                            {% endif %}
                         {% endif %}
                     </a>
                     {% else %}

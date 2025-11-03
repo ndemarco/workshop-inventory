@@ -80,11 +80,18 @@ def new_item():
 
         # Assign location if provided
         if location_id:
-            item_location = ItemLocation(
-                item_id=item.id,
-                location_id=location_id
-            )
-            db.session.add(item_location)
+            # Check if the location is already occupied
+            location_occupied = ItemLocation.query.filter_by(location_id=location_id).first()
+            if location_occupied:
+                location = Location.query.get(location_id)
+                occupied_item = location_occupied.item
+                flash(f'Warning: Location {location.full_address()} is already occupied by "{occupied_item.name}". Item created without location.', 'warning')
+            else:
+                item_location = ItemLocation(
+                    item_id=item.id,
+                    location_id=location_id
+                )
+                db.session.add(item_location)
 
         db.session.commit()
 
@@ -213,7 +220,15 @@ def add_location(item_id):
     # Check if this item-location combination already exists
     existing = ItemLocation.query.filter_by(item_id=item_id, location_id=location_id).first()
     if existing:
-        flash('Item is already stored at this location', 'error')
+        flash('Item is already assigned to this location', 'error')
+        return redirect(url_for('items.view_item', item_id=item_id))
+
+    # Check if the location already has an item (one item per location limit)
+    location_occupied = ItemLocation.query.filter_by(location_id=location_id).first()
+    if location_occupied:
+        location = Location.query.get(location_id)
+        occupied_item = location_occupied.item
+        flash(f'Location {location.full_address()} is already occupied by "{occupied_item.name}"', 'error')
         return redirect(url_for('items.view_item', item_id=item_id))
 
     item_location = ItemLocation(
