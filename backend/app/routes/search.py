@@ -7,11 +7,11 @@ bp = Blueprint('search', __name__)
 
 @bp.route('/')
 def search():
-    """Search page"""
+    """Search page - browse all items or filter by search query"""
     query = request.args.get('q', '')
-    results = []
-    
+
     if query:
+        # Perform keyword search
         search_term = f"%{query}%"
         results = Item.query.filter(
             db.or_(
@@ -21,7 +21,10 @@ def search():
                 Item.notes.ilike(search_term)
             )
         ).order_by(Item.name).all()
-    
+    else:
+        # No query - show all items (browse mode)
+        results = Item.query.order_by(Item.name).all()
+
     return render_template('search/results.html', query=query, results=results)
 
 

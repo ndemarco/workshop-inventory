@@ -871,6 +871,11 @@ body {
     transition: color 0.2s;
 }
 
+.footer-stat-link strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 .footer-stat-link:hover {
     color: var(--primary-color);
     text-decoration: underline;
