@@ -916,16 +916,6 @@ body {
         gap: 1rem;
     }
 
-    .nav-menu {
-        gap: 1rem;
-    }
-
-    .nav-actions {
-        width: 100%;
-        justify-content: center;
-        order: 3;
-    }
-
     .footer-nav {
         flex-direction: column;
         gap: 0.75rem;

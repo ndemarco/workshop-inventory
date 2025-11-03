@@ -15,10 +15,6 @@
                     <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="WhereTF?" class="logo">
                 </a>
             </div>
-            <ul class="nav-menu">
-                <li><a href="{{ url_for('main.index') }}" title="Home">🏠</a></li>
-                <li><a href="{{ url_for('duplicates.list_duplicates') }}">🔄 Duplicates</a></li>
-            </ul>
             <div class="nav-actions">
                 <a href="{{ url_for('items.new_item') }}" class="btn btn-primary btn-add-item">+ Item</a>
             </div>
@@ -47,6 +43,7 @@
             <div class="footer-nav">
                 <a href="{{ url_for('modules.list_modules') }}" class="footer-nav-btn">📦 Modules</a>
                 <a href="{{ url_for('locations.list_locations') }}" class="footer-nav-btn">📍 Locations</a>
+                <a href="{{ url_for('duplicates.list_duplicates') }}" class="footer-nav-btn">🔄 Duplicates</a>
                 <a href="{{ url_for('admin.index') }}" class="footer-nav-btn">⚙️ Admin</a>
             </div>
             {% if stats %}
