@@ -60,23 +60,23 @@
     <div class="form-row">
         <div class="form-group">
             <label for="width_mm">Width (mm)</label>
-            <input type="number" id="width_mm" name="width_mm" value="{{ location.width_mm or '' }}" step="0.1" min="0">
+            <input type="number" id="width_mm" name="width_mm" value="{{ location.width_mm if location else '' }}" step="0.1" min="0">
         </div>
 
         <div class="form-group">
             <label for="height_mm">Height (mm)</label>
-            <input type="number" id="height_mm" name="height_mm" value="{{ location.height_mm or '' }}" step="0.1" min="0">
+            <input type="number" id="height_mm" name="height_mm" value="{{ location.height_mm if location else '' }}" step="0.1" min="0">
         </div>
 
         <div class="form-group">
             <label for="depth_mm">Depth (mm)</label>
-            <input type="number" id="depth_mm" name="depth_mm" value="{{ location.depth_mm or '' }}" step="0.1" min="0">
+            <input type="number" id="depth_mm" name="depth_mm" value="{{ location.depth_mm if location else '' }}" step="0.1" min="0">
         </div>
     </div>
 
     <div class="form-group">
         <label for="notes">Notes</label>
-        <textarea id="notes" name="notes" rows="3">{{ location.notes or '' }}</textarea>
+        <textarea id="notes" name="notes" rows="3">{{ location.notes if location else '' }}</textarea>
     </div>
 
     <div class="form-actions">

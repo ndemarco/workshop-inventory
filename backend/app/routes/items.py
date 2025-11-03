@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from markupsafe import Markup
 from app.models import db, Item, ItemLocation, Location, Level, Module, DuplicateCandidate
 from app.services.embedding_service import embedding_service
 from app.services.ai_description_service import ai_description_service
@@ -89,7 +90,8 @@ def new_item():
 
         flash(f'Item "{name}" created successfully', 'success')
         if duplicate_count > 0:
-            flash(f'Found {duplicate_count} potential duplicate(s). Review them in the duplicates section.', 'warning')
+            duplicates_url = url_for('duplicates.list_duplicates')
+            flash(Markup(f'Found {duplicate_count} potential duplicate(s). Review them in the <a href="{duplicates_url}">Duplicates</a> section.'), 'warning')
         return redirect(url_for('items.view_item', item_id=item.id))
     
     # For GET request, load modules for location selection
@@ -175,7 +177,8 @@ def edit_item(item_id):
 
         flash(f'Item "{item.name}" updated successfully', 'success')
         if duplicate_count > 0:
-            flash(f'Found {duplicate_count} new potential duplicate(s). Review them in the duplicates section.', 'warning')
+            duplicates_url = url_for('duplicates.list_duplicates')
+            flash(Markup(f'Found {duplicate_count} new potential duplicate(s). Review them in the <a href="{duplicates_url}">Duplicates</a> section.'), 'warning')
         return redirect(url_for('items.view_item', item_id=item.id))
     
     modules = Module.query.order_by(Module.name).all()

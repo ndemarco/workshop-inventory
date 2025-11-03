@@ -28,7 +28,7 @@
                 <div class="flash-messages">
                     {% for category, message in messages %}
                         <div class="alert alert-{{ category }}">
-                            {{ message }}
+                            {{ message|safe }}
                             <button class="alert-close" onclick="this.parentElement.style.display='none'">&times;</button>
                         </div>
                     {% endfor %}
