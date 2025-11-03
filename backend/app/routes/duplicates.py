@@ -102,24 +102,18 @@ def merge_duplicate(duplicate_id):
     # Delete the duplicate item
     deleted_name = delete_item.name
 
-    # Mark the current duplicate as merged
-    duplicate.status = 'merged'
-    duplicate.resolved_at = datetime.utcnow()
-
-    # Find OTHER duplicate candidates involving the deleted item (not the current one)
-    # These need to be deleted because the item no longer exists
-    other_duplicates = DuplicateCandidate.query.filter(
+    # Find ALL duplicate candidates involving the deleted item (including current one)
+    # These need to be deleted because the item will no longer exist
+    all_duplicates = DuplicateCandidate.query.filter(
         db.or_(
             DuplicateCandidate.item1_id == delete_id,
             DuplicateCandidate.item2_id == delete_id
-        ),
-        DuplicateCandidate.id != duplicate_id  # Exclude the current duplicate we just merged
+        )
     ).all()
 
     print(f"DEBUG: Deleting item {delete_id} ({deleted_name})")
-    print(f"DEBUG: Marking duplicate #{duplicate_id} as merged")
-    print(f"DEBUG: Found {len(other_duplicates)} other duplicate candidates to delete:")
-    for dup in other_duplicates:
+    print(f"DEBUG: Found {len(all_duplicates)} duplicate candidates to delete:")
+    for dup in all_duplicates:
         print(f"  - Duplicate #{dup.id}: item {dup.item1_id} <-> item {dup.item2_id}")
         db.session.delete(dup)
 
