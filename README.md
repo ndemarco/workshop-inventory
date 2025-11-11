@@ -55,7 +55,38 @@ A modern, comprehensive inventory management system designed for homelabs, maker
 - **Nginx Proxy**: Production-ready reverse proxy setup
 - **API Documentation**: Auto-generated OpenAPI specification
 
-## 🚀 Quick Start
+## � Screenshots
+
+### Dashboard Overview
+![Dashboard](screenshots/dashboard.png)
+*Main dashboard showing recent items and statistics*
+
+### Items Management
+![Items List](screenshots/items-list.png)
+*Items page with search, filtering, and pagination*
+
+### Item Details with QR Code
+![Item Detail](screenshots/item-detail.png)
+*Detailed item view with QR code display and quantity controls*
+
+### QR Code Scanning
+![QR Scanner](screenshots/qr-scanner.png)
+*Mobile QR code scanner for quick item access*
+
+### Location Grid View
+![Location Grid](screenshots/location-grid.png)
+*Visual grid representation of storage locations*
+
+### Mobile Responsive Design
+![Mobile View](screenshots/mobile-view.png)
+*Responsive design optimized for mobile devices*
+
+> **Note**: Screenshots are placeholders. To add real screenshots:
+> 1. Take screenshots of your running application
+> 2. Save them in a `screenshots/` folder in the repo root
+> 3. Replace the placeholder paths above with actual image paths
+
+## �🚀 Quick Start
 
 ### Prerequisites
 - Docker and Docker Compose
