@@ -1,52 +1,202 @@
 # 🧹 TidyLab
 
+A modern, comprehensive inventory management system designed for homelabs, makerspaces, and workshops. Track thousands of items across organized storage modules with advanced search, QR code integration, and intelligent duplicate detection.
 
-A comprehensive inventory management system for homelab, makerspace, and workshop environments. Track thousands of items across organized storage modules with natural language search and AI-powered capabilities.
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
+[![React](https://img.shields.io/badge/React-18.2.0-blue)](https://reactjs.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0-green)](https://flask.palletsprojects.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
 
 ---
+
 **This is a rebranded fork of [Wheretf](https://github.com/ndemarco/wheretf) by [ndemarco](https://github.com/ndemarco). Rebranded and maintained by Ruben Costa.**
+
 ---
 
-## 🚀 Phase 1-3: Foundation & Intelligence (Current)
+## ✨ Features
 
-This is the **Phase 1-3** implementation of an 8-phase development roadmap. The current release includes:
+### 🏗️ Storage Management
+- **Hierarchical Organization**: Modules → Levels → Locations for structured storage
+- **Visual Location Grid**: Interactive grid view for easy location management
+- **Color-Coded Locations**: Assign colors to locations for quick identification
 
-- ✅ Complete storage hierarchy (Modules → Levels → Locations)
-- ✅ Full CRUD operations for items, modules, levels, and locations
-- ✅ Web UI with responsive design
-- ✅ Basic keyword search
-- ✅ Location visualization (grid view)
-- ✅ Docker deployment ready
-- ✅ PostgreSQL backend with proper relationships
-- ✅ Smart location suggestions (Phase 2)
-- ✅ Duplicate detection (Phase 3)
-- ✅ Automatic specification extraction (Phase 3)
-- ✅ Pattern recognition for fasteners & electronics (Phase 3)
+### 📦 Item Management
+- **Full CRUD Operations**: Create, read, update, and delete items with ease
+- **Quantity Tracking**: Real-time quantity management with increment/decrement buttons
+- **Categories & Tags**: Organize items with categories and flexible tagging system
+- **Specifications**: Store detailed specifications for technical items
 
-### Coming in Future Phases
+### 🔍 Search & Discovery
+- **Advanced Search**: Search by name, description, tags, and categories
+- **Filtering**: Filter items by category, location, or custom criteria
+- **Pagination**: Efficient browsing with 9-item pagination on mobile/desktop
 
-- 🔜 **Phase 4**: Semantic search with AI embeddings
-- 🔜 **Phase 5**: CLI interface
-- 🔜 **Phase 6**: Voice interface
-- 🔜 **Phase 7**: Advanced AI features
-- 🔜 **Phase 8**: Production polish & mobile optimization
+### 📱 QR Code Integration
+- **QR Code Generation**: Automatically generate QR codes for items
+- **QR Code Scanning**: Scan QR codes to quickly access item details
+- **Visual QR Display**: View QR codes directly in the item detail page
+- **Download QR Codes**: Export QR codes as PNG files
 
-## ✨ Phase 3: Duplicate Detection Features
+### 🧠 Intelligent Features
+- **Duplicate Detection**: Real-time duplicate prevention with similarity scoring
+- **Smart Suggestions**: AI-powered location suggestions for new items
+- **Pattern Recognition**: Automatic categorization for fasteners and electronics
+- **Specification Extraction**: Intelligent parsing of item specifications
 
-The system now includes intelligent duplicate detection to prevent you from adding the same item twice:
+### 🎨 User Interface
+- **Responsive Design**: Fully optimized for mobile and desktop
+- **Modern UI**: Built with React 18, Tailwind CSS, and Vite
+- **Touch-Friendly**: Mobile-optimized buttons and interactions
+- **Dark/Light Themes**: Coming in future updates
 
-### Automatic Duplicate Detection
-- **Real-time checking**: As you type a new item, the system searches for similar existing items
-- **Smart similarity scoring**: Uses multiple factors:
-  - Name similarity (SequenceMatcher algorithm)
-  - Description matching
-  - Category and tag overlap
-  - Specification matching (for technical items)
-- **Visual warnings**: Shows potential duplicates with:
-  - Similarity percentage
-  - Why items are similar
-  - Key differences
-  - Current location and quantity
+### 🚀 Deployment
+- **Docker Ready**: One-command deployment with Docker Compose
+- **PostgreSQL Backend**: Robust database with proper relationships
+- **Nginx Proxy**: Production-ready reverse proxy setup
+- **API Documentation**: Auto-generated OpenAPI specification
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker and Docker Compose
+- Git
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/rubencosta13/tidylab.git
+   cd tidylab
+   ```
+
+2. **Start the application:**
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Access the application:**
+   - Web UI: http://localhost:8080
+   - API: http://localhost:5000/api
+   - Database: localhost:5432
+
+### Development Setup
+
+#### Backend (Flask + PostgreSQL)
+```bash
+cd api
+pip install -r requirements.txt
+export DATABASE_URL="postgresql://inventoryuser:inventorypass@localhost:5432/inventory"
+flask run
+```
+
+#### Frontend (React + Vite)
+```bash
+cd ui
+npm install
+npm run dev
+```
+
+## 📖 Usage
+
+### Managing Items
+1. **Add Items**: Click "New Item" to create items with name, description, category, quantity, and tags
+2. **Edit Items**: Click the edit button on any item to modify details
+3. **Quantity Management**: Use +/- buttons on item details to adjust quantities
+4. **QR Codes**: Generate and download QR codes for quick access
+
+### Organizing Storage
+1. **Create Modules**: Add storage modules (cabinets, shelves, etc.)
+2. **Define Levels**: Organize modules into levels (shelves, drawers)
+3. **Set Locations**: Create specific storage locations with coordinates
+
+### Searching & Filtering
+- Use the search bar to find items by name, description, or tags
+- Filter by category using the category buttons
+- Browse paginated results (9 items per page)
+
+### QR Code Workflow
+1. **Generate**: Create QR codes for items from the Items page
+2. **Scan**: Use the QR Scanner page to scan codes and view items
+3. **Display**: View QR codes visually on the Item Detail page
+
+## 🔧 API Documentation
+
+TidyLab provides a RESTful API with comprehensive documentation:
+
+- **Base URL**: `http://localhost:5000/api`
+- **OpenAPI Spec**: Available at `/api/openapi.json`
+- **Interactive Docs**: View API documentation in your browser
+
+### Key Endpoints
+
+#### Items
+- `GET /api/items` - List items with filtering
+- `POST /api/items` - Create new item
+- `PUT /api/items/{id}` - Update item
+- `DELETE /api/items/{id}` - Delete item
+- `POST /api/items/{id}/qr/generate` - Generate QR code
+
+#### Locations
+- `GET /api/locations` - List locations
+- `POST /api/locations` - Create location
+- `PUT /api/locations/{id}` - Update location
+
+#### Modules & Levels
+- `GET /api/modules` - List modules
+- `POST /api/modules` - Create module
+- `GET /api/modules/{id}/levels` - Get levels in module
+
+## 🏗️ Architecture
+
+```
+TidyLab/
+├── api/                 # Flask backend
+│   ├── app/            # Application code
+│   ├── scripts/        # Utility scripts
+│   └── requirements.txt
+├── ui/                 # React frontend
+│   ├── src/           # Source code
+│   ├── public/        # Static assets
+│   └── package.json
+├── nginx/             # Reverse proxy config
+├── docker-compose.yml # Docker orchestration
+└── README.md
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+- Follow conventional commit format
+- Write tests for new features
+- Update documentation as needed
+- Ensure mobile responsiveness
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Credits
+
+- **Original Project**: [Wheretf](https://github.com/ndemarco/wheretf) by [ndemarco](https://github.com/ndemarco)
+- **Rebranded & Maintained by**: Ruben Costa
+- **Technologies**: React, Flask, PostgreSQL, Docker, Tailwind CSS
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/rubencosta13/tidylab/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/rubencosta13/tidylab/discussions)
+
+---
+
+*Keep your workspace tidy with TidyLab! 🧹*
 
 ### Specification Extraction
 - **One-click extraction**: Click "✨ Extract Specs" to auto-parse descriptions
