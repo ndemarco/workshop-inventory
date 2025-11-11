@@ -1,0 +1,510 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Wheretf Inventory API",
+    "version": "dev",
+    "description": "Auto-generated OpenAPI spec (development)"
+  },
+  "paths": {
+    "/api/items": {
+      "get": {
+        "summary": "List all items with filtering",
+        "description": "List all items with filtering",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new item",
+        "description": "Create a new item",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/<int:item_id>": {
+      "get": {
+        "summary": "Get item details",
+        "description": "Get item details",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Update an item",
+        "description": "Update an item",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an item",
+        "description": "Update an item",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an item",
+        "description": "Delete an item",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/<int:item_id>/locations/<int:item_location_id>": {
+      "delete": {
+        "summary": "Remove a location from an item",
+        "description": "Remove a location from an item",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/<int:item_id>/locations/add": {
+      "post": {
+        "summary": "Add a location to an item",
+        "description": "Add a location to an item",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/<int:item_id>/qr/download": {
+      "get": {
+        "summary": "Download QR code image for an item",
+        "description": "Download QR code image for an item",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/<int:item_id>/qr/generate": {
+      "post": {
+        "summary": "Generate a new QR code for an item",
+        "description": "Generate a new QR code for an item",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/check-duplicates": {
+      "post": {
+        "summary": "Check for duplicate items",
+        "description": "Check for duplicate items",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/count": {
+      "get": {
+        "summary": "Get total count of items",
+        "description": "Get total count of items",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/existing-values": {
+      "get": {
+        "summary": "Get all unique values for item fields",
+        "description": "Get all unique values for item fields",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/extract-specs": {
+      "post": {
+        "summary": "Extract specifications from description",
+        "description": "Extract specifications from description",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/qr/scan/<qr_code>": {
+      "get": {
+        "summary": "Get item from scanned QR code",
+        "description": "Get item from scanned QR code",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/items/values": {
+      "get": {
+        "summary": "Get existing categories, types, and units for autocomplete",
+        "description": "Get existing categories, types, and units for autocomplete",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations": {
+      "get": {
+        "summary": "List all locations with optional filtering",
+        "description": "List all locations with optional filtering",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations/<int:location_id>": {
+      "get": {
+        "summary": "Get location details and items stored there",
+        "description": "Get location details and items stored there",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Update location properties",
+        "description": "Update location properties",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update location properties",
+        "description": "Update location properties",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a location",
+        "description": "Delete a location",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations/<int:location_id>/items": {
+      "get": {
+        "summary": "Get all items stored at a specific location",
+        "description": "Get all items stored at a specific location",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations/by-level/<int:level_id>": {
+      "get": {
+        "summary": "Get all locations in a specific level",
+        "description": "Get all locations in a specific level",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations/by-module/<int:module_id>": {
+      "get": {
+        "summary": "Get all locations in a specific module",
+        "description": "Get all locations in a specific module",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations/count": {
+      "get": {
+        "summary": "Get total location count",
+        "description": "Get total location count",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations/occupied": {
+      "get": {
+        "summary": "Get all occupied locations with their items",
+        "description": "Get all occupied locations with their items",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations/types": {
+      "get": {
+        "summary": "Get all unique location types",
+        "description": "Get all unique location types",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/locations/vacant": {
+      "get": {
+        "summary": "Get all vacant locations",
+        "description": "Get all vacant locations",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/modules": {
+      "get": {
+        "summary": "List all modules",
+        "description": "List all modules",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/modules-summary": {
+      "get": {
+        "summary": "Get modules summary",
+        "description": "Get modules summary",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/modules/": {
+      "post": {
+        "summary": "Create a new module",
+        "description": "Create a new module",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/modules/<int:module_id>": {
+      "get": {
+        "summary": "Get module details with levels",
+        "description": "Get module details with levels",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Update a module",
+        "description": "Update a module",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a module",
+        "description": "Update a module",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a module (and all its levels, locations, and item associations)",
+        "description": "Delete a module (and all its levels, locations, and item associations)",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/modules/<int:module_id>/levels": {
+      "get": {
+        "summary": "List all levels in a module",
+        "description": "List all levels in a module",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new level in a module",
+        "description": "Create a new level in a module",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/modules/<int:module_id>/levels/<int:level_id>": {
+      "get": {
+        "summary": "Get level details",
+        "description": "Get level details",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "post": {
+        "summary": "Update a level",
+        "description": "Update a level",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a level",
+        "description": "Update a level",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a level",
+        "description": "Delete a level",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/modules/count": {
+      "get": {
+        "summary": "Get total module count",
+        "description": "Get total module count",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/modules/summary": {
+      "get": {
+        "summary": "Get summary of all modules (useful for dashboard/stats)",
+        "description": "Get summary of all modules (useful for dashboard/stats)",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/openapi.json": {
+      "get": {
+        "summary": "",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/recent-items": {
+      "get": {
+        "summary": "Get recent items",
+        "description": "Get recent items",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "get": {
+        "summary": "Search items by name, description, tags, or notes",
+        "description": "Search items by name, description, tags, or notes",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/search/advanced": {
+      "post": {
+        "summary": "Advanced search with multiple filters",
+        "description": "Advanced search with multiple filters",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
+    "/api/stats": {
+      "get": {
+        "summary": "Get dashboard statistics",
+        "description": "Get dashboard statistics",
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    }
+  }
+}

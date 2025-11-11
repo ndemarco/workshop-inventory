@@ -1,0 +1,2 @@
+# Development / optional dependencies
+flasgger==0.9.5
