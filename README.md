@@ -1,6 +1,11 @@
-# 🏠 Homelab Inventory System
+# 🧹 TidyLab
+
 
 A comprehensive inventory management system for homelab, makerspace, and workshop environments. Track thousands of items across organized storage modules with natural language search and AI-powered capabilities.
+
+---
+**This is a rebranded fork of [Wheretf](https://github.com/ndemarco/wheretf) by [ndemarco](https://github.com/ndemarco). Rebranded and maintained by Ruben Costa.**
+---
 
 ## 🚀 Phase 1-3: Foundation & Intelligence (Current)
 

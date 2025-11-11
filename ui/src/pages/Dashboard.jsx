@@ -4,9 +4,6 @@ import { useAsync } from '../hooks/useAsync'
 import { PageHeader, Card, Button, Alert } from '../components/UI'
 
 export default function Dashboard({ onNavigate }) {
-  // const { data: stats, loading: statsLoading, error: statsError } = useAsync(
-  //   () => APIService.getStats()
-  // )
   const [recentItems, setRecentItems] = useState([]);
   const [itemsLoading, setItemsLoading] = useState(true);
   const [stats, setStats] = useState(null);

@@ -28,9 +28,9 @@ def build_openapi(app):
     spec = {
         'openapi': '3.0.0',
         'info': {
-            'title': 'Wheretf Inventory API',
+            'title': 'TidyLab Inventory API',
             'version': os.environ.get('VERSION', 'dev'),
-            'description': 'Auto-generated OpenAPI spec (development)'
+            'description': 'Auto-generated OpenAPI spec (development)\n\nRebranded from Wheretf by ndemarco. Maintained by Ruben Costa.'
         },
         'paths': {}
     }

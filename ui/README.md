@@ -1,6 +1,6 @@
-# Inventory System UI
+# TidyLab UI
 
-Modern React + Vite frontend for the inventory system.
+Modern React + Vite frontend for the TidyLab inventory system.
 
 ## Development
 
@@ -9,7 +9,10 @@ npm install
 npm run dev
 ```
 
-The dev server will proxy API requests to `http://localhost:5000`.
+
+---
+**This UI is part of TidyLab, a rebranded fork of [Wheretf](https://github.com/ndemarco/wheretf) by [ndemarco](https://github.com/ndemarco). Rebranded and maintained by Ruben Costa.**
+---
 
 ## Build
 

@@ -1,6 +1,7 @@
 {
-  "name": "inventory-ui",
+  "name": "tidylab-ui",
   "version": "1.0.0",
+  "author": "Ruben Costa",
   "type": "module",
   "scripts": {
     "dev": "vite",
