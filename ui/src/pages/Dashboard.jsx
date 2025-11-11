@@ -1,67 +1,23 @@
-import { useEffect, useState } from 'react'
-import APIService from '../services/api'
-import { useAsync } from '../hooks/useAsync'
-import { PageHeader, Card, Button, Alert } from '../components/UI'
+import React, { useEffect } from 'react'
+import { PageHeader, Alert } from '../components/UI'
 import StatsCard from '../components/dashboard/StatsCard'
 import RecentItems from '../components/dashboard/RecentItems'
 import QuickActions from '../components/dashboard/QuickActions'
+import { useDashboardStore } from '../stores/dashboardStore.js'
 
 export default function Dashboard({ onNavigate }) {
-  const [recentItems, setRecentItems] = useState([]);
-  const [itemsLoading, setItemsLoading] = useState(true);
-  const [stats, setStats] = useState(null);
-  const [statsError, setStatsError] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const {
+    recentItems,
+    itemsLoading,
+    statsError,
+    statsLoading,
+    dashboardStats,
+    fetchDashboardData
+  } = useDashboardStore()
 
   useEffect(() => {
-    const fetchRecentItems = async () => {
-      setItemsLoading(true);
-      setStatsLoading(true);
-      try {
-        const result = await APIService.getRecentItems(5);
-        const statsResult = await APIService.getStats();
-        if (result.success) {
-          setRecentItems(result.data);
-        } else {
-          setRecentItems([]);
-        }
-
-        if (statsResult.success) {  
-          setStats(statsResult.data);
-          setStatsLoading(false);
-        } else {
-          setStatsError(statsResult.error);
-          setStats({
-            items: 0,
-            modules: 0,
-            locations: 0,
-            levels: 0,
-          });
-        }
-
-      } catch {
-        setRecentItems([]);
-      } finally {
-        setItemsLoading(false);
-      }
-    };
-
-    fetchRecentItems();
-  }, []);
-
-
-  const [dashboardStats, setDashboardStats] = useState({
-    items: 0,
-    modules: 0,
-    locations: 0,
-    levels: 0,
-  })
-
-  useEffect(() => {
-    if (stats) {
-      setDashboardStats(stats)
-    }
-  }, [stats])
+    fetchDashboardData()
+  }, [fetchDashboardData])
 
   return (
     <div>

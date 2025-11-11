@@ -153,6 +153,24 @@ class APIService {
     return this.request(`/items/${itemId}`, { method: 'delete' })
   }
 
+  static async getExistingValues() {
+    return this.request('/items/existing-values')
+  }
+
+  static async checkDuplicates(duplicateData) {
+    return this.request('/items/check-duplicates', { 
+      method: 'post', 
+      data: duplicateData 
+    })
+  }
+
+  static async extractSpecs(description, name = '') {
+    return this.request('/items/extract-specs', { 
+      method: 'post', 
+      data: { description, name } 
+    })
+  }
+
   // ===================== LOCATIONS =====================
   static async getLocations(filters = {}) {
     return this.request('/locations', { params: filters })

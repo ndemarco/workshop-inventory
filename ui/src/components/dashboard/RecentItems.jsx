@@ -1,6 +1,7 @@
 import { Card } from '../UI'
 
 export default function RecentItems({ items, loading, onNavigate }) {
+    console.log(items);
   return (
     <Card className="bg-white">
       <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Items</h2>
