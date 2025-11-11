@@ -1,0 +1,45 @@
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: inventory-db
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: inventoryuser
+      POSTGRES_PASSWORD: inventorypass
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventoryuser -d inventory"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./api
+    container_name: inventory-backend
+    environment:
+      DATABASE_URL: postgresql://inventoryuser:inventorypass@postgres:5432/inventory
+      FLASK_ENV: production
+      FLASK_APP: app
+    volumes:
+      - ./api:/app
+      - ./scripts:/app/scripts:ro
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: inventory-nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ui/dist:/app/frontend/dist:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
